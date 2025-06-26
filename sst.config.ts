@@ -12,10 +12,7 @@ export default $config({
   async run() {
     const storage = await import("./infra/storage");
     await import("./infra/api");
-
-    new sst.aws.React("ReactFrontend", {
-      path: "packages/frontend/",
-    });
+    await import("./infra/frontend");
 
     return {
       MyBucket: storage.bucket.name,
