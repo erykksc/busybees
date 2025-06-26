@@ -1,5 +1,5 @@
 {
-  "name": "@busybees/frontend",
+  "name": "@busybees/website",
   "type": "module",
   "scripts": {
     "build": "react-router build",
@@ -29,4 +29,3 @@
     "vite-tsconfig-paths": "^5.1.4"
   }
 }
-
