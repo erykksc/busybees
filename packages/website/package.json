@@ -4,6 +4,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
+    "format": "prettier --write .",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc"
   },

@@ -4,7 +4,9 @@
   "workspaces": [
     "packages/*"
   ],
-  "scripts": {},
+  "scripts": {
+    "format": "npm run format --workspaces"
+  },
   "devDependencies": {
     "@tsconfig/node22": "^22",
     "prettier": "^3.6.1",
