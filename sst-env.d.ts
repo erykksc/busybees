@@ -10,11 +10,7 @@ declare module "sst" {
       "type": "sst.aws.Function"
       "url": string
     }
-    "MyBucket": {
-      "name": string
-      "type": "sst.aws.Bucket"
-    }
-    "ReactFrontend": {
+    "MyWebsite": {
       "type": "sst.aws.React"
       "url": string
     }
