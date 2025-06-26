@@ -4,27 +4,9 @@
 /* deno-fmt-ignore-file */
 
 declare module "sst" {
-  export interface Resource {
-    "EventsTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "GroupsTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "MyApi": {
-      "name": string
-      "type": "sst.aws.Function"
-      "url": string
-    }
-    "MyWebsite": {
-      "type": "sst.aws.React"
-      "url": string
-    }
-  }
+  export interface Resource {}
 }
 /// <reference path="sst-env.d.ts" />
 
-import "sst"
-export {}
+import "sst";
+export {};
