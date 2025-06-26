@@ -5,6 +5,14 @@
 
 declare module "sst" {
   export interface Resource {
+    "EventsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "GroupsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
     "MyApi": {
       "name": string
       "type": "sst.aws.Function"

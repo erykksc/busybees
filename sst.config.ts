@@ -10,12 +10,11 @@ export default $config({
     };
   },
   async run() {
-    const { api } = await import("./infra/api");
+    await import("./infra/api");
     const { website } = await import("./infra/frontend");
 
     return {
       SiteUrl: website.url,
-      ApiEndpoint: api.url,
     };
   },
 });
