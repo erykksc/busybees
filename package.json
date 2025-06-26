@@ -1,5 +1,5 @@
 {
-  "name": "monorepo-template",
+  "name": "busybees",
   "version": "0.0.0",
   "workspaces": [
     "packages/*"
@@ -7,6 +7,7 @@
   "scripts": {},
   "devDependencies": {
     "@tsconfig/node22": "^22",
+    "prettier": "^3.6.1",
     "typescript": "^5"
   },
   "dependencies": {
