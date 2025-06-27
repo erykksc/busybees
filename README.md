@@ -42,3 +42,7 @@ Configure your aws cli first with your account and then run:
 ```bash
 npx sst dev
 ```
+
+## Learn more
+
+More information about the project can be found in [`docs/`](https://github.com/erykksc/busy-bees/tree/main/docs)
