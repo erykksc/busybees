@@ -4,9 +4,35 @@
 /* deno-fmt-ignore-file */
 
 declare module "sst" {
-  export interface Resource {}
+  export interface Resource {
+    "EventsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "GroupsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "MyApi": {
+      "type": "sst.aws.ApiGatewayV2"
+      "url": string
+    }
+    "MyUserPool": {
+      "id": string
+      "type": "sst.aws.CognitoUserPool"
+    }
+    "MyUserPoolClient": {
+      "id": string
+      "secret": string
+      "type": "sst.aws.CognitoUserPoolClient"
+    }
+    "MyWebsite": {
+      "type": "sst.aws.React"
+      "url": string
+    }
+  }
 }
 /// <reference path="sst-env.d.ts" />
 
-import "sst";
-export {};
+import "sst"
+export {}
