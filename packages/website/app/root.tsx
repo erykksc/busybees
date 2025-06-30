@@ -6,9 +6,11 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { AuthProvider } from "react-oidc-context";
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import config from "./config";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -41,8 +43,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+const cognitoAuthConfig = {
+  authority: config.cognito.authority,
+  client_id: config.cognito.clientId,
+  redirect_uri: "http://localhost:5173/auth",
+  response_type: "code",
+  scope: "aws.cognito.signin.user.admin email openid phone profile",
+};
+
+// Then use it in your component
 export default function App() {
-  return <Outlet />;
+  return (
+    <AuthProvider {...cognitoAuthConfig}>
+      <Outlet />
+    </AuthProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

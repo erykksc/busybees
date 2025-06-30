@@ -3,7 +3,14 @@ export const userPool = new sst.aws.CognitoUserPool("MyUserPool", {
   usernames: ["email"],
 });
 
-export const userPoolClient = userPool.addClient("MyUserPoolClient");
+export const userPoolClient = userPool.addClient("MyUserPoolClient", {
+  transform: {
+    client: {
+      callbackUrls: ["http://localhost:5173/auth"],
+      // logoutUrls: ["http://localhost:5173/logout"],
+    },
+  },
+});
 
 export const userPoolDomain = new aws.cognito.UserPoolDomain(
   "MyUserPoolDomain",
@@ -13,11 +20,7 @@ export const userPoolDomain = new aws.cognito.UserPoolDomain(
   },
 );
 
-sst.Linkable.wrap(aws.cognito.UserPoolDomain, (userPoolDomain) => ({
-  properties: {
-    domain: userPoolDomain.domain,
-  },
-}));
+export const userPoolDomainUrl = $interpolate`https://${userPoolDomain.domain}.auth.${aws.getRegionOutput().name}.amazoncognito.com`;
 
 export const identityPool = new sst.aws.CognitoIdentityPool("IdentityPool", {
   userPools: [
@@ -46,4 +49,10 @@ export const identityPool = new sst.aws.CognitoIdentityPool("IdentityPool", {
   },
 });
 
-export default { userPool, identityPool, userPoolClient, userPoolDomain };
+export default {
+  userPool,
+  identityPool,
+  userPoolClient,
+  userPoolDomain,
+  userPoolDomainUrl,
+};

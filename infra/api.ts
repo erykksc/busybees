@@ -1,7 +1,7 @@
-import db from "./db";
+// import db from "./db";
 
 export const apiGateway = new sst.aws.ApiGatewayV2("MyApi", {
-  link: [db.eventsTable, db.groupsTable],
+  // link: [db.eventsTable, db.groupsTable],
   transform: {
     route: {
       args: (props) => {
