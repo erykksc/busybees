@@ -13,6 +13,10 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Dynamo"
     }
+    "IdentityPool": {
+      "id": string
+      "type": "sst.aws.CognitoIdentityPool"
+    }
     "MyApi": {
       "type": "sst.aws.ApiGatewayV2"
       "url": string
@@ -25,6 +29,10 @@ declare module "sst" {
       "id": string
       "secret": string
       "type": "sst.aws.CognitoUserPoolClient"
+    }
+    "MyUserPoolDomain": {
+      "domain": string
+      "type": "aws.cognito/userPoolDomain.UserPoolDomain"
     }
     "MyWebsite": {
       "type": "sst.aws.React"
