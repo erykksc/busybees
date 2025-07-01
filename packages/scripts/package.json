@@ -8,7 +8,7 @@
   },
   "scripts": {
     "format": "prettier --write .",
-    "shell": "sst shell tsx"
+    "shell": "sst shell"
   },
   "devDependencies": {
     "@types/node": "^22",

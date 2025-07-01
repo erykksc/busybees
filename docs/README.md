@@ -75,12 +75,20 @@ This template uses [npm Workspaces](https://docs.npmjs.com/cli/v8/using-npm/work
 
 4. `scripts/`
 
-   This is for any scripts that run on the SST app using the `sst shell` CLI and [`tsx`](https://www.npmjs.com/package/tsx).
-   For example, you can run the example script using:
+   This is for any scripts for the project.
+   The scripts can run in the context of the SST app, its variables and resources.
 
-   ```bash
-   npm run shell src/example.ts
-   ```
+   You can run the scripts from the root of the project using `npm run <script-name>`.
+
+   Available scripts:
+   - `npm run format` - Format code across all workspaces
+   - `npm run signup-user -- --username user@example.com --password Passw0rd!` - Create a new Cognito user
+   - `npm run confirm-signup -- --username user@example.com` - Confirm user signup (skip email verification)
+   - `npm run list-users` - List all users in the Cognito user pool
+   - `npm run delete-user -- --username user@example.com` - Delete a Cognito user
+   - `npm run get-user -- --username user@example.com` - Get Cognito user details
+
+   > Note: All scripts defined in `packages/scripts` should be defined in the root `package.json` for easy access and documented here.
 
 ### Infrastructure
 
