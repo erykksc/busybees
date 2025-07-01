@@ -16,7 +16,7 @@ export const userPoolDomain = new aws.cognito.UserPoolDomain(
   "MyUserPoolDomain",
   {
     userPoolId: userPool.id,
-    domain: `${$app.stage}-auth`,
+    domain: `${$app.name}-${$app.stage}-auth`,
   },
 );
 
