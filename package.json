@@ -5,7 +5,7 @@
     "packages/*"
   ],
   "scripts": {
-    "format": "npm run format --workspaces",
+    "format": "prettier --write . && npm run format --workspaces",
     "signup-user": "npx --workspace ./packages/scripts sst shell -- tsx src/signup-user.ts",
     "confirm-signup": "npx --workspace ./packages/scripts sst shell -- tsx src/confirm-signup.ts",
     "list-users": "npx --workspace ./packages/scripts sst shell -- tsx src/list-users.ts",

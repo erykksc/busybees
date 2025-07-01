@@ -2,12 +2,13 @@
   "name": "@busybees/functions",
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "format": "prettier --write ."
-  },
+  "scripts": {},
   "dependencies": {
     "@busybees/core": "*",
-    "sst": "*"
+    "sst": "*",
+    "googleapis": "^150.0.1",
+    "@aws-sdk/client-dynamodb": "^3.840.0",
+    "@aws-sdk/lib-dynamodb": "^3.840.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8"

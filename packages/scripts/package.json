@@ -7,7 +7,6 @@
     "sst": "*"
   },
   "scripts": {
-    "format": "prettier --write .",
     "shell": "sst shell"
   },
   "devDependencies": {

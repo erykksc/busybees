@@ -3,7 +3,6 @@
   "type": "module",
   "version": "0.0.0",
   "scripts": {
-    "format": "prettier --write .",
     "test": "sst shell vitest"
   },
   "exports": {

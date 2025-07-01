@@ -33,7 +33,9 @@ console.log(`aws cognito-idp admin-confirm-sign-up \\
   --username ${USERNAME}`);
 
 console.log("\n3. Login URL:");
-console.log(`https://${Resource.MyUserPoolDomain.domain}.auth.${region}.amazoncognito.com/login?client_id=${Resource.MyUserPoolClient.id}&response_type=code&scope=email+openid+profile&redirect_uri=http://localhost:5173/auth`);
+console.log(
+  `https://${Resource.MyUserPoolDomain.domain}.auth.${region}.amazoncognito.com/login?client_id=${Resource.MyUserPoolClient.id}&response_type=code&scope=email+openid+profile&redirect_uri=http://localhost:5173/auth`,
+);
 
 console.log("\n=== Additional Useful Commands ===");
 
