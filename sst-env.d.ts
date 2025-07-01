@@ -5,6 +5,27 @@
 
 declare module "sst" {
   export interface Resource {
+    "IdentityPool": {
+      "id": string
+      "type": "sst.aws.CognitoIdentityPool"
+    }
+    "MyApi": {
+      "type": "sst.aws.ApiGatewayV2"
+      "url": string
+    }
+    "MyUserPool": {
+      "id": string
+      "type": "sst.aws.CognitoUserPool"
+    }
+    "MyUserPoolClient": {
+      "id": string
+      "secret": string
+      "type": "sst.aws.CognitoUserPoolClient"
+    }
+    "MyWebsite": {
+      "type": "sst.aws.React"
+      "url": string
+    }
   }
 }
 /// <reference path="sst-env.d.ts" />

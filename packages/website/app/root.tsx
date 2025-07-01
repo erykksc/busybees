@@ -44,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 const cognitoAuthConfig = {
-  authority: config.cognito.authority,
+  authority: `https://cognito-idp.${config.cognito.region}.amazonaws.com/${config.cognito.userPoolID}`,
   client_id: config.cognito.clientId,
   redirect_uri: "http://localhost:5173/auth",
   response_type: "code",

@@ -4,7 +4,7 @@ import config from "~/config";
 export default function Auth() {
   const auth = useAuth();
 
-  const signOutRedirect = () => {
+  const signoutRedirect = () => {
     const clientId = config.cognito.clientId;
     const logoutUri = "<logout uri>";
     const cognitoDomain = config.cognito.domain;
@@ -38,7 +38,7 @@ export default function Auth() {
       <hr />
       <button onClick={() => auth.signinRedirect()}>Sign in</button>
       <hr />
-      <button onClick={() => signOutRedirect()}>Sign out</button>
+      <button onClick={() => signoutRedirect()}>Sign out</button>
     </div>
   );
 }

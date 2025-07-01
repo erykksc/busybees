@@ -1,6 +1,5 @@
 export const config = {
   cognito: {
-    authority: import.meta.env.VITE_COGNITO_AUTHORITY,
     domain: import.meta.env.VITE_COGNITO_DOMAIN,
     region: import.meta.env.VITE_COGNITO_AWS_REGION,
     userPoolID: import.meta.env.VITE_COGNITO_USERPOOL_ID,
