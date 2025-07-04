@@ -39,6 +39,7 @@
               awscli2
               nixfmt-rfc-style
               nodejs
+              nodePackages.vercel
             ];
           };
         }
