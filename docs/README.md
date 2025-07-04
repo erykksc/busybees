@@ -32,6 +32,12 @@ For write, the user should be able to sync all his calendars and it should be vi
 
 ### DynamoDB Schema
 
+**'users' table**
+
+- Primary key: `userId` (Cognito sub)
+- Stores user profile and connected calendar integrations
+- Each user can have multiple Google Calendar connections with OAuth tokens
+
 **'events' table**
 The primary key is "groupId#YYYY-MM", this way a lookup for the events of the group will be simple Query for specific primary key.
 

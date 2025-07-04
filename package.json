@@ -5,6 +5,7 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "sst dev",
     "format": "prettier --write . && npm run format --workspaces",
     "signup-user": "npx --workspace ./packages/scripts sst shell -- tsx src/signup-user.ts",
     "confirm-signup": "npx --workspace ./packages/scripts sst shell -- tsx src/confirm-signup.ts",
@@ -15,7 +16,8 @@
   "devDependencies": {
     "@tsconfig/node22": "^22",
     "prettier": "^3.6.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "local-cors-proxy": "^1.1.0"
   },
   "dependencies": {
     "sst": "^3"

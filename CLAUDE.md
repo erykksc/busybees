@@ -11,24 +11,29 @@ Busy Bees is a serverless calendar coordination app built with SST v3 that helps
 This is a monorepo using npm workspaces with 4 main packages:
 
 - **`packages/core/`** - Shared utilities and business logic modules
-- **`packages/functions/`** - AWS Lambda functions for API endpoints  
+- **`packages/functions/`** - AWS Lambda functions for API endpoints
 - **`packages/website/`** - React Router v7 frontend application
 - **`packages/scripts/`** - Utility scripts that run via `sst shell`
 - **`infra/`** - SST infrastructure definitions
 
 ### Infrastructure Components
+
 - **API**: AWS API Gateway v2 with JWT authentication via AWS Cognito
 - **Database**: DynamoDB with Redis caching for session storage
 - **Authentication**: AWS Cognito User Pools
 - **Frontend**: React Router v7 deployed as AWS React component
+- **Secrets**: SST secrets for Google OAuth credentials and configuration
 
 ### Key Data Patterns
-- Events are stored with composite key `groupId#YYYY-MM` for efficient monthly queries
+
+- **Users**: Stored with `userId` (Cognito sub) as primary key, contains Google Calendar OAuth tokens
+- **Events**: Stored with composite key `groupId#YYYY-MM` for efficient monthly queries
 - Users can belong to multiple groups and have multiple connected calendars
 
 ## Development Commands
 
 ### Environment Setup
+
 ```bash
 # Install dependencies
 npm install
@@ -41,6 +46,7 @@ npx sst deploy
 ```
 
 ### Package-Specific Commands
+
 ```bash
 # Format code across all workspaces
 npm run format
@@ -64,18 +70,46 @@ sst shell src/example.ts
 ```
 
 ### Framework-Specific Notes
+
 - Uses SST v3 framework for AWS deployment and local development
 - All Lambda functions automatically get access to linked resources (database, auth, etc.)
 - Local development uses `sst dev` which deploys actual AWS resources for testing
 - The `sst shell` command provides access to deployed resources for scripts and testing
 
 ## Testing
+
 - Core package uses Vitest for unit testing via `sst shell vitest`
 - Run tests from the core package directory or use `npm test`
 
 ## Key Technologies
+
 - **Frontend**: React Router v7, TailwindCSS, TypeScript
 - **Backend**: AWS Lambda, API Gateway v2, DynamoDB, Redis
 - **Auth**: AWS Cognito with JWT
+- **Calendar Integration**: Google APIs (googleapis v150.0.1), Google Calendar OAuth 2.0
 - **Infrastructure**: SST v3, AWS CDK under the hood
 - **Deployment**: AWS (serverless)
+
+## Google Calendar Integration
+
+The app implements Google Calendar OAuth 2.0 integration:
+
+### Setup Requirements
+
+```bash
+# Set required SST secrets
+sst secret set GoogleClientId "your-google-client-id"
+sst secret set GoogleClientSecret "your-google-client-secret"
+sst secret set GoogleRedirectUri "https://your-api-domain/api/oauth/google/callback"
+```
+
+### Key Components
+
+- **OAuth Flow**: Complete 3-step OAuth implementation with state validation
+- **Data Storage**: Google Calendar tokens stored securely in DynamoDB users table
+- **API Endpoints**:
+  - `GET /api/oauth/google/start` - Initiates OAuth (authenticated)
+  - `GET /api/oauth/google/callback` - Handles callback (unauthenticated)
+  - `GET /api/user/calendars` - Returns connections (authenticated)
+- **Frontend Route**: `/calendar` - Calendar integration page with connection management
+- **Security**: OAuth state parameter validation, sensitive tokens never exposed to frontend

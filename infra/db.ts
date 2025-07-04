@@ -1,3 +1,10 @@
+export const usersTable = new sst.aws.Dynamo("UsersTable", {
+  fields: {
+    userId: "string",
+  },
+  primaryIndex: { hashKey: "userId" },
+});
+
 // export const eventsTable = new sst.aws.Dynamo("EventsTable", {
 //   fields: {
 //     groupIdMm: "string",
@@ -17,5 +24,5 @@
 //   },
 //   primaryIndex: { hashKey: "groupId", rangeKey: "memberCount" },
 // });
-//
-// export default { eventsTable, groupsTable };
+
+export default { usersTable };

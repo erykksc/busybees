@@ -45,4 +45,4 @@ npx sst dev
 
 ## Learn more
 
-More information about the project can be found in [`docs/`](https://github.com/erykksc/busy-bees/tree/main/docs)
+More information about the project can be found in [`docs/`](https://github.com/erykksc/busybees/tree/main/docs)
