@@ -6,7 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import { AuthProvider } from "react-oidc-context";
+import { AuthProvider, type AuthProviderProps } from "react-oidc-context";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -43,12 +43,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-const cognitoAuthConfig = {
+const cognitoAuthConfig: AuthProviderProps = {
   authority: `https://cognito-idp.${config.cognito.region}.amazonaws.com/${config.cognito.userPoolID}`,
   client_id: config.cognito.clientId,
-  redirect_uri: "http://localhost:5173/auth",
+  redirect_uri: "http://localhost:5173/auth-callback",
   response_type: "code",
   scope: "aws.cognito.signin.user.admin email openid phone profile",
+  onSigninCallback: (user) => {
+    const redirectTo = (user?.state as any).redirectAfterSignin;
+    if (redirectTo) {
+      window.location.href = redirectTo;
+    }
+    // Otherwise it will be redirected to default location /auth-callback
+  },
 };
 
 // Then use it in your component

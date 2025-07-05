@@ -1,7 +1,8 @@
 import { redirect, useLoaderData } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
-import { useAuth } from "react-oidc-context";
+import { useAuth, withAuthenticationRequired } from "react-oidc-context";
 import { useEffect } from "react";
+import { authProtectedComponent } from "~/components";
 
 interface CalendarConnection {
   calendarId: string;
@@ -11,14 +12,10 @@ interface CalendarConnection {
   tokenType: string;
 }
 
-export default function Calendar() {
-  const auth = useAuth();
+export default authProtectedComponent(Calendar);
 
-  useEffect(() => {
-    if (!auth.isLoading && !auth.isAuthenticated) {
-      auth.signinRedirect();
-    }
-  });
+function Calendar() {
+  const auth = useAuth();
 
   if (auth.isLoading) {
     return <div>Loading...</div>;

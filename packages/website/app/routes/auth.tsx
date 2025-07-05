@@ -15,11 +15,22 @@ export default function Auth() {
     setPrivateData(await response.text());
   };
 
+  const signinRedirect = () => {
+    auth.signinRedirect({
+      state: {
+        redirectAfterSignin: window.location.href,
+      },
+    });
+  };
+
   const signoutRedirect = () => {
-    const clientId = config.cognito.clientId;
-    const logoutUri = "<logout uri>";
-    const cognitoDomain = config.cognito.domain;
-    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    auth.removeUser();
+    auth.signoutRedirect({
+      extraQueryParams: {
+        client_id: config.cognito.clientId,
+        logout_uri: "http://localhost:5173/logout",
+      },
+    });
   };
 
   if (auth.isLoading) {
@@ -38,7 +49,7 @@ export default function Auth() {
         <pre> Access Token: {auth.user?.access_token} </pre>
         <pre> Refresh Token: {auth.user?.refresh_token} </pre>
 
-        <button onClick={() => auth.removeUser()}>Sign out</button>
+        <button onClick={() => signoutRedirect()}>Sign out</button>
         <hr />
         <button onClick={() => callPrivateAPI()}>Call private API</button>
         <hr />
@@ -51,9 +62,8 @@ export default function Auth() {
     <div>
       {JSON.stringify(config, null, 4)}
       <hr />
-      <button onClick={() => auth.signinRedirect()}>Sign in</button>
-      <hr />
-      <button onClick={() => signoutRedirect()}>Sign out</button>
+      <button onClick={signinRedirect}>Sign in</button>
+      <hr /> <button onClick={signoutRedirect}>Sign out</button>
       <hr />
       <button onClick={() => callPrivateAPI()}>Call private API</button>
       <hr />

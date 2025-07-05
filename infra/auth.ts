@@ -5,8 +5,8 @@ export const userPool = new sst.aws.CognitoUserPool("MyUserPool", {
 export const userPoolClient = userPool.addClient("MyUserPoolClient", {
   transform: {
     client: {
-      callbackUrls: ["http://localhost:5173/auth"],
-      // logoutUrls: ["http://localhost:5173/logout"],
+      callbackUrls: ["http://localhost:5173/auth-callback"],
+      logoutUrls: ["http://localhost:5173/logout"],
     },
   },
 });
