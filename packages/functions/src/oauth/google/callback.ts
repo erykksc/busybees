@@ -1,7 +1,6 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { google } from "googleapis";
 import { Resource } from "sst";
-import { parse } from "cookie";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { decodeOauthState, BbOauthState } from "@busybees/core";
 import { parseCookies } from "utils";

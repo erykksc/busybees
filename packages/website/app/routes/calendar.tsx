@@ -2,17 +2,9 @@ import { redirect, useLoaderData } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { useAuth, withAuthenticationRequired } from "react-oidc-context";
 import { useEffect } from "react";
-import { authProtectedComponent } from "~/components";
+import { authGuard } from "~/components";
 
-interface CalendarConnection {
-  calendarId: string;
-  scope: string;
-  provider: string;
-  expiryDate: number;
-  tokenType: string;
-}
-
-export default authProtectedComponent(Calendar);
+export default authGuard(Calendar);
 
 function Calendar() {
   const auth = useAuth();

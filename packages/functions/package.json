@@ -4,11 +4,11 @@
   "type": "module",
   "scripts": {},
   "dependencies": {
-    "@busybees/core": "*",
-    "sst": "*",
-    "googleapis": "^150.0.1",
     "@aws-sdk/client-dynamodb": "^3.840.0",
-    "@aws-sdk/lib-dynamodb": "^3.840.0"
+    "@aws-sdk/lib-dynamodb": "^3.840.0",
+    "@busybees/core": "*",
+    "googleapis": "^150.0.1",
+    "sst": "*"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8"
