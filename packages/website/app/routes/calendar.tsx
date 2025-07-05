@@ -1,7 +1,4 @@
-import { redirect, useLoaderData } from "react-router";
-import type { LoaderFunctionArgs } from "react-router";
-import { useAuth, withAuthenticationRequired } from "react-oidc-context";
-import { useEffect } from "react";
+import { useAuth } from "react-oidc-context";
 import { authGuard } from "~/components";
 
 export default authGuard(Calendar);
