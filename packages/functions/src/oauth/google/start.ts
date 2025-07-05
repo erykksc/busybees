@@ -34,7 +34,11 @@ export const main = async (
 
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: "offline",
-      scope: ["https://www.googleapis.com/auth/calendar.readonly"],
+      scope: [
+        "https://www.googleapis.com/auth/calendar.readonly",
+        "https://www.googleapis.com/auth/userinfo.email",
+        "profile",
+      ],
       response_type: "code",
       prompt: "consent",
       state: encodeOauthState({

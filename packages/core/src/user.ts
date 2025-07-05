@@ -1,11 +1,8 @@
+import { Auth } from "googleapis";
+
 export interface GoogleCalendarConnection {
-  calendarId: string;
-  accessToken: string;
-  refreshToken: string;
-  expiryDate: number; // timestamp in milliseconds
-  scope: string;
-  tokenType: string;
-  provider: "google";
+  email: string;
+  tokens: Auth.Credentials; // Google auth credentials
 }
 
 export interface MsOutlookCalendarConnection {
@@ -19,7 +16,7 @@ export interface IcsFeedCalendar {
 export interface User {
   authSub: string; // Cognito sub - partition key
   // primaryCalendar: string;
-  googleCalendars: GoogleCalendarConnection[];
-  outlookCalendars: MsOutlookCalendarConnection[];
-  icsFeedCalendars: IcsFeedCalendar[];
+  googleCalendars: Array<GoogleCalendarConnection>;
+  // outlookCalendars: MsOutlookCalendarConnection[];
+  // icsFeedCalendars: IcsFeedCalendar[];
 }

@@ -4,16 +4,17 @@ import { Resource } from "sst";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { decodeOauthState, BbOauthState } from "@busybees/core";
 import { parseCookies } from "utils";
-// import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-// import {
-//   DynamoDBDocumentClient,
-//   GetCommand,
-//   PutCommand,
-// } from "@aws-sdk/lib-dynamodb";
-// import { User, GoogleCalendarConnection } from "@busybees/core/types";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
+import { User, GoogleCalendarConnection } from "@busybees/core";
 
-// const client = new DynamoDBClient({});
-// const docClient = DynamoDBDocumentClient.from(client);
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 const logger = new Logger({
   serviceName: "sst-app",
 });
@@ -42,11 +43,20 @@ export const main = async (
         }),
       };
     }
-    const expectedScope = "https://www.googleapis.com/auth/calendar.readonly";
-    if (scope !== expectedScope) {
-      logger.error("Scope mismatch", {
-        expected: expectedScope,
-        received: scope,
+    const requiredScopes = [
+      "https://www.googleapis.com/auth/calendar.readonly",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "profile",
+    ];
+    const receivedScopes = scope.split(" ");
+    const missingScopes = requiredScopes.filter(
+      (s) => !receivedScopes.includes(s),
+    );
+    if (missingScopes.length > 0) {
+      logger.error("Missing required scopes", {
+        required: requiredScopes,
+        received: receivedScopes,
+        missing: missingScopes,
       });
     }
 
@@ -119,6 +129,18 @@ export const main = async (
 
     oauth2Client.setCredentials(tokens);
 
+    // Get user's email from Google
+    const people = google.people({ version: "v1", auth: oauth2Client });
+    const profile = await people.people.get({
+      resourceName: "people/me",
+      personFields: "emailAddresses",
+    });
+    const email = profile.data.emailAddresses?.[0]?.value;
+    logger.info("Fetched user email from Google People API", {
+      email,
+      profile,
+    });
+
     // Get user's primary calendar info
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
     const calendarList = await calendar.calendarList.list();
@@ -128,53 +150,53 @@ export const main = async (
       JSON.stringify(calendarNames, null, 2),
     );
 
-    // // Get or create user record
-    // const getUserCommand = new GetCommand({
-    //   TableName: Resource.UsersTable.name,
-    //   Key: { userId: state },
-    // });
-    //
-    // const userResult = await docClient.send(getUserCommand);
-    // let user: User = userResult.Item as User;
-    //
-    // if (!user) {
-    //   // Create new user record
-    //   user = {
-    //     userId: state,
-    //     email: "", // Will be populated from Cognito user pool if needed
-    //     googleCalendars: [],
-    //   };
-    // }
-    //
-    // // Create new Google Calendar connection
-    // const newConnection: GoogleCalendarConnection = {
-    //   calendarId: primaryCalendar.id,
-    //   accessToken: tokens.access_token,
-    //   refreshToken: tokens.refresh_token,
-    //   expiryDate: tokens.expiry_date || Date.now() + 3600000, // Default 1 hour if not provided
-    //   scope: "https://www.googleapis.com/auth/calendar.readonly",
-    //   tokenType: tokens.token_type || "Bearer",
-    //   provider: "google",
-    // };
-    //
-    // // Update or add the calendar connection
-    // const existingIndex = user.googleCalendars.findIndex(
-    //   (cal) => cal.calendarId === primaryCalendar.id,
-    // );
-    //
-    // if (existingIndex >= 0) {
-    //   user.googleCalendars[existingIndex] = newConnection;
-    // } else {
-    //   user.googleCalendars.push(newConnection);
-    // }
-    //
-    // // Save updated user record
-    // const putCommand = new PutCommand({
-    //   TableName: Resource.UsersTable.name,
-    //   Item: user,
-    // });
-    //
-    // await docClient.send(putCommand);
+    // Get or create user record
+    const getUserCommand = new GetCommand({
+      TableName: Resource.UsersTable.name,
+      Key: { authSub: stateData.authSub },
+    });
+
+    const userResult = await docClient.send(getUserCommand);
+    let user: User = userResult.Item as User;
+    logger.info("Fetched user record from DynamoDB", { user });
+
+    if (!user) {
+      // Create new user record
+      user = {
+        authSub: stateData.authSub,
+        googleCalendars: [],
+      };
+    }
+
+    // Create new Google Calendar connection
+    const newConnection: GoogleCalendarConnection = {
+      email: email!,
+      tokens: tokens,
+    };
+
+    // Update or add the calendar connection
+    const existingIndex = user.googleCalendars.findIndex(
+      (cal) => cal.email === email,
+    );
+
+    if (existingIndex >= 0) {
+      user.googleCalendars[existingIndex] = newConnection;
+    } else {
+      user.googleCalendars.push(newConnection);
+    }
+
+    // Save updated user record
+    const putCommand = new PutCommand({
+      TableName: Resource.UsersTable.name,
+      Item: user,
+    });
+
+    const putOutput = await docClient.send(putCommand);
+    logger.info("User record upserted successfully", {
+      authSub: stateData.authSub,
+      email: email,
+    });
+    logger.debug("PutCommand output", putOutput);
 
     // Redirect to calendar page
     return {

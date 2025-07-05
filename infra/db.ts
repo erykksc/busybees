@@ -1,8 +1,8 @@
 export const usersTable = new sst.aws.Dynamo("UsersTable", {
   fields: {
-    userId: "string",
+    authSub: "string",
   },
-  primaryIndex: { hashKey: "userId" },
+  primaryIndex: { hashKey: "authSub" },
 });
 
 // export const eventsTable = new sst.aws.Dynamo("EventsTable", {
