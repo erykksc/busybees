@@ -1,2 +1,3 @@
 packages/website/.react-router
 packages/website/build
+**/sst-env.d.ts
