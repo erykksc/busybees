@@ -8,8 +8,8 @@ export const main = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const clientId = event.requestContext.authorizer?.jwt?.claims?.client_id;
-    if (!clientId) {
+    const authSub = event.requestContext.authorizer?.jwt?.claims?.sub;
+    if (!authSub) {
       return {
         statusCode: 401,
         body: JSON.stringify({ error: "User not authenticated" }),
@@ -38,7 +38,7 @@ export const main = async (
       response_type: "code",
       prompt: "consent",
       state: encodeOauthState({
-        clientId: clientId,
+        authSub: authSub,
         redirectTo: referer,
         csrfToken: csrfToken,
       }),

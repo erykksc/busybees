@@ -17,8 +17,7 @@ export interface IcsFeedCalendar {
 }
 
 export interface User {
-  userId: string; // Cognito sub - partition key
-  email: string;
+  authSub: string; // Cognito sub - partition key
   // primaryCalendar: string;
   googleCalendars: GoogleCalendarConnection[];
   outlookCalendars: MsOutlookCalendarConnection[];

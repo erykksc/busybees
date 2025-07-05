@@ -1,7 +1,7 @@
 export type BbOauthState = {
   redirectTo: string; // URL to redirect after OAuth flow
   csrfToken: string; // CSRF token for security
-  clientId: string; // User's account ID
+  authSub: string; // User's account ID
 };
 
 export function encodeOauthState(state: BbOauthState): string {
@@ -18,7 +18,7 @@ export function decodeOauthState(encodedState: string): {
   if (
     typeof data.redirectTo !== "string" ||
     typeof data.csrfToken !== "string" ||
-    typeof data.clientId !== "string"
+    typeof data.authSub !== "string"
   ) {
     return {
       success: false,
