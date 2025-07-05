@@ -6,7 +6,8 @@
   ],
   "scripts": {
     "dev": "sst dev",
-    "format": "prettier --write . && npm run format --workspaces",
+    "format": "prettier --write .",
+    "admin-create-user": "npx --workspace ./packages/scripts sst shell -- tsx src/admin-create-user.ts",
     "signup-user": "npx --workspace ./packages/scripts sst shell -- tsx src/signup-user.ts",
     "confirm-signup": "npx --workspace ./packages/scripts sst shell -- tsx src/confirm-signup.ts",
     "list-users": "npx --workspace ./packages/scripts sst shell -- tsx src/list-users.ts",
@@ -16,10 +17,11 @@
   "devDependencies": {
     "@tsconfig/node22": "^22",
     "prettier": "^3.6.1",
-    "typescript": "^5",
-    "local-cors-proxy": "^1.1.0"
+    "typescript": "^5"
   },
   "dependencies": {
+    "@aws-lambda-powertools/logger": "^2.23.0",
+    "cookie": "^1.0.2",
     "sst": "^3"
   }
 }

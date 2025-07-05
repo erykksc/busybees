@@ -4,7 +4,41 @@
 /* deno-fmt-ignore-file */
 
 declare module "sst" {
-  export interface Resource {}
+  export interface Resource {
+    GoogleClientId: {
+      type: "sst.sst.Secret";
+      value: string;
+    };
+    GoogleClientSecret: {
+      type: "sst.sst.Secret";
+      value: string;
+    };
+    GoogleRedirectUri: {
+      type: "sst.sst.Secret";
+      value: string;
+    };
+    MyApi: {
+      type: "sst.aws.ApiGatewayV2";
+      url: string;
+    };
+    MyUserPool: {
+      id: string;
+      type: "sst.aws.CognitoUserPool";
+    };
+    MyUserPoolClient: {
+      id: string;
+      secret: string;
+      type: "sst.aws.CognitoUserPoolClient";
+    };
+    MyWebsite: {
+      type: "sst.aws.React";
+      url: string;
+    };
+    UsersTable: {
+      name: string;
+      type: "sst.aws.Dynamo";
+    };
+  }
 }
 /// <reference path="sst-env.d.ts" />
 

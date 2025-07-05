@@ -43,6 +43,9 @@ Configure your aws cli first with your account and then run:
 npx sst dev
 ```
 
+> You also need to have Vercel Access Token configured in your environment variables to deploy the dev and production stage.
+> Vercel is used as domain provider and DNS as the domain is registered with Vercel.
+
 ## Learn more
 
 More information about the project can be found in [`docs/`](https://github.com/erykksc/busybees/tree/main/docs)

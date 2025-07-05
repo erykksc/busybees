@@ -1,8 +1,19 @@
+import { useState } from "react";
 import { useAuth } from "react-oidc-context";
 import config from "~/config";
 
 export default function Auth() {
   const auth = useAuth();
+  const [privateData, setPrivateData] = useState("");
+
+  const callPrivateAPI = async () => {
+    const response = await fetch("/api/private", {
+      headers: {
+        Authorization: `Bearer ${auth?.user?.access_token}`,
+      },
+    });
+    setPrivateData(await response.text());
+  };
 
   const signoutRedirect = () => {
     const clientId = config.cognito.clientId;
@@ -28,6 +39,10 @@ export default function Auth() {
         <pre> Refresh Token: {auth.user?.refresh_token} </pre>
 
         <button onClick={() => auth.removeUser()}>Sign out</button>
+        <hr />
+        <button onClick={() => callPrivateAPI()}>Call private API</button>
+        <hr />
+        {privateData}
       </div>
     );
   }
@@ -39,6 +54,10 @@ export default function Auth() {
       <button onClick={() => auth.signinRedirect()}>Sign in</button>
       <hr />
       <button onClick={() => signoutRedirect()}>Sign out</button>
+      <hr />
+      <button onClick={() => callPrivateAPI()}>Call private API</button>
+      <hr />
+      {privateData}
     </div>
   );
 }

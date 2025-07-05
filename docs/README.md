@@ -99,3 +99,53 @@ This template uses [npm Workspaces](https://docs.npmjs.com/cli/v8/using-npm/work
 ### Infrastructure
 
 The `infra/` directory stores the infrastructure of the app using SST.
+
+## Google Calendar OAuth Integration
+
+The app implements a complete Google Calendar OAuth 2.0 flow to allow users to connect their calendars with readonly access.
+
+### Setup Requirements
+
+Set the following SST secrets before deployment:
+
+```bash
+sst secret set GoogleClientId "your-google-client-id"
+sst secret set GoogleClientSecret "your-google-client-secret"
+sst secret set GoogleRedirectUri "https://your-api-domain/api/oauth/google/callback"
+```
+
+### OAuth Flow
+
+1. **Initiate OAuth** (`/api/oauth/google/start`)
+   - User clicks "Add Google Calendar" on `/calendar` page
+   - Authenticated endpoint generates Google OAuth URL with user ID as state parameter
+   - Redirects user to Google consent screen with `calendar.readonly` scope
+
+2. **OAuth Callback** (`/api/oauth/google/callback`)
+   - Google redirects back with authorization code and user ID state
+   - Unauthenticated endpoint exchanges code for access/refresh tokens
+   - Fetches user's primary calendar details via Google Calendar API
+   - Stores calendar connection in DynamoDB users table
+   - Redirects user back to `/calendar` page
+
+3. **View Connections** (`/api/user/calendars`)
+   - Authenticated endpoint returns user's connected calendars (without sensitive tokens)
+   - Frontend displays connection details on `/calendar` page
+
+### Security Features
+
+- OAuth state parameter validates user identity across the flow
+- Sensitive tokens (access/refresh) never exposed to frontend
+- Callback endpoint is unauthenticated but validates user via state parameter
+- Calendar connection details stored securely in DynamoDB
+
+### API Endpoints
+
+- `GET /api/oauth/google/start` - Initiates OAuth flow (authenticated)
+- `GET /api/oauth/google/callback` - Handles OAuth callback (unauthenticated)
+- `GET /api/user/calendars` - Returns user's calendar connections (authenticated)
+
+### Frontend Routes
+
+- `/calendar` - Calendar integration page with "Add Google Calendar" button
+- Uses React Router v7 loader function for server-side data fetching

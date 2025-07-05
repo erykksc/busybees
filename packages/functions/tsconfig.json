@@ -3,8 +3,9 @@
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "baseUrl": "src",
     "paths": {
-      "@busybees/core": ["../core/src"]
+      "@busybees/core": ["../../core/src"]
     }
   }
 }
