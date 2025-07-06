@@ -38,25 +38,29 @@ export const apiGatewayAuthorizer = apiGateway.addAuthorizer({
   },
 });
 
-apiGateway.route("GET /api/public", "packages/functions/src/public.main");
-apiGateway.route("GET /api/private", "packages/functions/src/private.main", {
-  auth: { jwt: { authorizer: apiGatewayAuthorizer.id } },
-});
+apiGateway.route("GET /api/public", "api/packages/functions/src/public.main");
+apiGateway.route(
+  "GET /api/private",
+  "api/packages/functions/src/private.main",
+  {
+    auth: { jwt: { authorizer: apiGatewayAuthorizer.id } },
+  },
+);
 
 // OAuth routes
 apiGateway.route(
   "GET /api/oauth/google/start",
-  "packages/functions/src/oauth/google/start.main",
+  "api/packages/functions/src/oauth/google/start.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
 apiGateway.route(
   "GET /api/oauth/google/callback",
-  "packages/functions/src/oauth/google/callback.main",
+  "api/packages/functions/src/oauth/google/callback.main",
 );
 
 // User routes
 apiGateway.route(
   "GET /api/user/calendars",
-  "packages/functions/src/user/calendars.main",
+  "api/packages/functions/src/user/calendars.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
