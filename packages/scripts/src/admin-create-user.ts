@@ -30,15 +30,7 @@ try {
   const checkResult = execSync(checkUserCommand, { encoding: "utf-8" });
   console.log(`User ${EMAIL} already exists. Exiting.`);
   process.exit(0);
-} catch (error: any) {
-  // User doesn't exist, proceed with creation
-  if (error.status === 1) {
-    console.log("User doesn't exist, proceeding with creation...");
-  } else {
-    console.error("Error checking user:", error.message);
-    process.exit(1);
-  }
-}
+} catch (error: any) {}
 
 const command = `aws cognito-idp admin-create-user \
   --user-pool-id ${Resource.MyUserPool.id} \
