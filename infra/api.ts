@@ -38,29 +38,72 @@ export const apiGatewayAuthorizer = apiGateway.addAuthorizer({
   },
 });
 
-apiGateway.route("GET /api/public", "api/packages/functions/src/public.main");
+// Test Endpoints
+apiGateway.route("GET /api/public", "packages/functions/src/api/public.main");
 apiGateway.route(
   "GET /api/private",
-  "api/packages/functions/src/private.main",
+  "packages/functions/src/api/private.main",
   {
     auth: { jwt: { authorizer: apiGatewayAuthorizer.id } },
   },
 );
 
-// OAuth routes
+// OAuth Endpoints
 apiGateway.route(
   "GET /api/oauth/google/start",
-  "api/packages/functions/src/oauth/google/start.main",
+  "packages/functions/src/api/oauth/google/start.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
 apiGateway.route(
   "GET /api/oauth/google/callback",
-  "api/packages/functions/src/oauth/google/callback.main",
+  "packages/functions/src/api/oauth/google/callback.main",
 );
 
-// User routes
+// User Endpoints
 apiGateway.route(
-  "GET /api/user/calendars",
-  "api/packages/functions/src/user/calendars.main",
+  "GET /api/user/profile",
+  "packages/functions/src/api/user/profile.GET.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+apiGateway.route(
+  "POST /api/user/profile",
+  "packages/functions/src/api/user/profile.POST.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+apiGateway.route(
+  "GET /api/user/events",
+  "packages/functions/src/api/user/events.GET.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+apiGateway.route(
+  "POST /api/user/events",
+  "packages/functions/src/api/user/events.POST.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+
+// Group Endpoints
+apiGateway.route(
+  "POST /api/groups",
+  "packages/functions/src/api/groups.POST.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+apiGateway.route(
+  "GET /api/groups/{groupId}/profile",
+  "packages/functions/src/api/groups/[groupId]/profile.GET.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+apiGateway.route(
+  "POST /api/groups/{groupId}/profile",
+  "packages/functions/src/api/groups/[groupId]/profile.POST.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+apiGateway.route(
+  "GET /api/groups/{groupId}/events",
+  "packages/functions/src/api/groups/[groupId]/events.GET.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+apiGateway.route(
+  "POST /api/groups/{groupId}/events",
+  "packages/functions/src/api/groups/[groupId]/events.POST.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
