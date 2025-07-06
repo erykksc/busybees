@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "sst dev",
     "format": "prettier --write .",
+    "get-id-token": "npx --workspace ./packages/scripts sst shell -- tsx src/get-id-token.ts",
     "admin-create-user": "npx --workspace ./packages/scripts sst shell -- tsx src/admin-create-user.ts",
     "signup-user": "npx --workspace ./packages/scripts sst shell -- tsx src/signup-user.ts",
     "confirm-signup": "npx --workspace ./packages/scripts sst shell -- tsx src/confirm-signup.ts",

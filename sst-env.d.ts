@@ -5,6 +5,10 @@
 
 declare module "sst" {
   export interface Resource {
+    "AwsRegion": {
+      "type": "sst.sst.Linkable"
+      "value": string
+    }
     "GoogleClientId": {
       "type": "sst.sst.Secret"
       "value": string

@@ -21,11 +21,17 @@ export default $config({
     await import("./infra/dev");
     const { website } = await import("./infra/frontend");
 
+    const awsRegion = new sst.Linkable("AwsRegion", {
+      properties: {
+        value: aws.getRegionOutput().name,
+      },
+    });
+
     return {
       SiteUrl: website.url,
       UserPoolId: auth.userPool.id,
       UserPoolClientId: auth.userPoolClient.id,
-      AwsRegion: aws.getRegionOutput().name,
+      AwsRegion: awsRegion,
     };
   },
 });
