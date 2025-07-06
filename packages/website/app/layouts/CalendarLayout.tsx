@@ -1,0 +1,544 @@
+// import { useState, useEffect } from 'react'
+// import { Outlet } from 'react-router-dom';
+// import ProfileMenu from '../components/ProfileMenu';
+// import BurgerMenu from '../components/BurgerMenu';
+// import { useAuth } from '../AuthContext';
+// import ProfileSettings from '../pages/ProfileSettings'
+// import { removeUserFromGroup } from '../hooks/group';
+
+// export default function CalendarLayout({onProfile, burgerMenuProps}) {
+//   const { user, logout, groups } = useAuth();
+//   const [localGroups, setLocalGroups] = useState(groups);
+//   const [showProfileMenu, setShowProfileMenu] = useState(false);
+//   const [showExternalDropdown, setShowExternalDropdown] = useState(false);
+//   const [burgerOpen, setBurgerOpen] = useState(false);  
+//   const [activeTabId, setActiveTabId] = useState('personal');
+//   const [connectedCalendars, setConnectedCalendars] = useState([]);
+//   const [showProfileSettings, setShowProfileSettings] = useState(false);
+//   const [showCreateGroup, setShowCreateGroup] = useState(false);
+//   const [newGroupName, setNewGroupName] = useState('');
+//   const [isNameValid, setIsNameValid] = useState(false);
+//   const [nameError, setNameError] = useState('');
+//   const [makeEventsPublic, setMakeEventsPublic] = useState(false);
+
+//     const handleCreateGroup = () => {
+//         setShowCreateGroup(true)
+//     }
+
+//     const handleNameChange = (value) => {
+//         const trimmed = value.trim()
+//         setNewGroupName(value)
+//         if (trimmed.length === 0) {
+//         setIsNameValid(false)
+//         setNameError('Please enter a name for your shared calendar')
+//         } else {
+//         setIsNameValid(true)
+//         setNameError('')
+//         }
+//     }
+
+//     const handleInviteFriends = () => {
+//     const trimmed = newGroupName.trim();
+//     if (!trimmed) {
+//         setIsNameValid(false);
+//         setNameError('Please enter a name for your shared calendar');
+//         return;
+//     }
+
+//     const newGroup = {
+//         id: Date.now().toString(),
+//         name: trimmed,
+//         members: [user.email],
+//         makeEventsPublic: makeEventsPublic,
+//     };
+    
+//     setLocalGroups(prev => [...prev, newGroup]);
+
+//     const savedGroups = JSON.parse(localStorage.getItem("groups")) || [];
+//     localStorage.setItem("groups", JSON.stringify([...savedGroups, newGroup]));
+
+//     const inviteLink = `${window.location.origin}/invite/${newGroup.id}`;
+//     navigator.clipboard.writeText(inviteLink).then(() => {
+//         alert(`Invite link copied: ${inviteLink}`);
+//         setShowCreateGroup(false);
+//         setNewGroupName('');
+//     });
+//     };
+
+
+//    const tabs = [
+//     { id: 'personal', type: 'personal', name: 'My Calendar' },
+//     ...localGroups.map(g => ({ id: g.id, type: 'group', group: g }))
+//   ];
+
+//   useEffect(() => {
+//     if (tabs.length > 1 && activeTabId === 'personal') {
+//       setActiveTabId(tabs[0].id);
+//     }
+//   }, [tabs]);
+
+//   const activeTab = tabs.find(t => t.id === activeTabId) || { type: 'personal' };
+//   const isGroupTab = activeTab.type === 'group';
+
+
+//   return (
+//     <div className="flex flex-col h-screen font-cute bg-[#fff9e7] text-gray-800">
+//       {/* Top Bar */}
+//       <div className="flex justify-between items-center px-4 py-2 border-b">
+//         {/* Burger icon and Calendar name */}
+//         <div className="flex items-center space-x-4">
+//           <button onClick={() => setBurgerOpen(true)} className="focus:outline-none">
+//             <div className="space-y-1">
+//               <div className="w-5 h-0.5 bg-gray-800" />
+//               <div className="w-5 h-0.5 bg-gray-800" />
+//               <div className="w-5 h-0.5 bg-gray-800" />
+//             </div>
+//           </button>
+//         <div className="text-lg font-semibold">{isGroupTab ? activeTab.group?.name : "My Calendar"}
+//           </div>
+//         </div>
+
+//         {/* Right side menu */}
+//         <div className="flex items-center space-x-2 ml-auto relative">
+//           {/* Add External Calendar */}
+//           <div className="relative">
+//             <button
+//               onClick={() => setShowExternalDropdown((prev) => !prev)}
+//               className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full shadow-md hover:bg-blue-300 transition-all text-sm"
+//             >
+//               Add Your Calendar ▾
+//             </button>
+
+//             {showExternalDropdown && (
+//               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+//                 {['Google', 'Microsoft', 'Apple'].map((type) => (
+//                   <button
+//                     key={type}
+//                     className="w-full px-4 py-2 text-left hover:bg-gray-100 text-sm"
+//                     onClick={() => {
+//                       setShowExternalDropdown(false);
+//                       alert(`${type} Calendar integration coming soon!`);
+//                     }}
+//                   >
+//                     {type} Calendar
+//                   </button>
+//                 ))}
+//               </div>
+//             )}
+//           </div>
+
+//           {/* Profile menu */}
+//           <div className="flex items-center space-x-2">
+//             <ProfileMenu
+//                 show={showProfileMenu}
+//                 user={user}
+//                 onToggle={() => setShowProfileMenu(!showProfileMenu)}
+//                 onLogout={logout}
+//                 onProfile={() => {
+//                 setShowProfileMenu(false);       
+//                 setShowProfileSettings(true);    
+//                  }}
+//             />
+//             {showProfileSettings && (
+//             <ProfileSettings
+//                 addedCalendars={connectedCalendars}
+//                 onRemoveCalendar={(calendar) =>
+//                 setConnectedCalendars(prev => prev.filter(c => c !== calendar))
+//                 }
+//                 onAddCalendar={(type) => {
+//                 if (!connectedCalendars.includes(type)) {
+//                     setConnectedCalendars(prev => [...prev, type]);
+//                 } else {
+//                     alert(`${type} Calendar already added.`);
+//                 }
+//                 }}
+//                 onClose={() => setShowProfileSettings(false)}
+//             />
+//             )}
+//          </div>
+//         </div>
+//       </div>
+
+//       {/* Main Content */}
+//       <div className="flex-1 overflow-y-auto">
+//         <Outlet context={{ activeTab, user, makeEventsPublic, setMakeEventsPublic }} />
+//       </div>
+
+//       {/* Burger Menu */}
+//       {burgerOpen && (
+//               <BurgerMenu
+//                   activeTabId={activeTabId}
+//                   localGroups={localGroups}
+//                   onSelectCalendar={(calendar) => {
+//                   if (calendar === 'personal') {
+//                       setActiveTabId('personal');
+//                   } else {
+//                       setActiveTabId(calendar.id);
+//                   }
+//                   setBurgerOpen(false);
+//                   }}
+//                   onCreateGroup={() => {
+//                   setBurgerOpen(false);
+//                   setShowCreateGroup(true);
+//                   }}
+//                   onRemoveGroup={async (group) => {
+//                   if (window.confirm(`Remove yourself from ${group.name}?`)) {
+//                       try {
+//                       await removeUserFromGroup(group.id, user.id);
+//                       setLocalGroups(prev => prev.filter(g => g.id !== group.id));
+//                       } catch (e) {
+//                       alert('Failed to leave the group.');
+//                       console.error(e);
+//                       }
+//                   }
+//                   }}
+//                   onClose={() => setBurgerOpen(false)}
+//               />
+//               )}
+
+              
+//       {/* Bottom Tabs */}
+//         <div className="flex justify-around border-t p-2">
+//         {tabs.map((tab) => (
+//             <button
+//             key={tab.id}
+//             onClick={() => setActiveTabId(tab.id)}
+//             className={`px-4 py-2 rounded-full shadow-md font-cute transition-all ${
+//                 activeTabId === tab.id
+//                 ? 'bg-[#fbc289] text-gray-800'
+//                 : 'bg-[#ffea96] text-gray-700 hover:bg-[#fff2a0]'
+//             }`}
+//             >
+//             {tab.type === 'personal' ? 'My Calendar' : `${tab.group.name}`}
+//             </button>
+//         ))}
+
+//         <button
+//             onClick={handleCreateGroup}
+//             className="bg-purple-200 text-purple-800 px-4 py-2 rounded-full shadow-md hover:bg-purple-300 transition-all"
+//         >
+//             Create Group Calendar
+//         </button>
+//         </div>
+
+//         {/* Create Group Modal */}
+//       {showCreateGroup && (
+//         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+//           <div className="bg-white p-6 rounded-xl shadow-lg max-w-sm w-full">
+//             <h2 className="text-lg font-bold mb-4">Create Group Calendar</h2>
+//             <input
+//               type="text"
+//               placeholder="Calendar name..."
+//               value={newGroupName}
+//               onChange={(e) => handleNameChange(e.target.value)}
+//               className="w-full border rounded px-3 py-2 mb-2"
+//             />
+//             {nameError && <p className="text-red-500 text-sm mb-2">{nameError}</p>}
+//                   <div className="flex items-center mb-4">
+//                     <label htmlFor="privacyToggle" className="mr-2 text-sm">
+//                     Make my event titles public
+//                     </label>
+//                     <input
+//                     id="privacyToggle"
+//                     type="checkbox"
+//                     checked={makeEventsPublic}
+//                     onChange={() => setMakeEventsPublic(!makeEventsPublic)}
+//                     className="w-4 h-4"
+//                     />
+//                 </div>
+//         <div className="flex flex-col items-center gap-1">
+//             <button
+//               onClick={handleInviteFriends}
+//               disabled={!isNameValid}
+//                className={`"bg-green-200 px-4 py-2 rounded-full shadow-md transition-all" ${
+//                isNameValid ? 'bg-green-200 text-green-800 px-4 py-2 rounded-full shadow-md hover:bg-green-300 transition-all' : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+//             }`}
+//             >
+//               Create Calendar & Copy Invite Link
+//             </button>
+//             <button
+//               onClick={() => setShowCreateGroup(false)}
+//               className="mt-3 text-sm underline text-gray-500"
+//             >
+//               Cancel
+//             </button>
+//           </div>
+//           </div>
+//         </div>
+//       )}
+
+//     </div>
+    
+//   );
+// }
+
+
+import { useState, useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
+import ProfileMenu from '../components/ProfileMenu';
+import BurgerMenu from '../components/BurgerMenu';
+import { useAuth } from '../AuthContext';
+import ProfileSettings from '../pages/ProfileSettings';
+import { removeUserFromGroup } from '../hooks/group';
+import { Group, User } from '../types';
+
+interface CalendarLayoutProps {
+  onProfile: () => void;
+  burgerMenuProps: any; // you can replace 'any' with a more specific type if available
+}
+
+export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarLayoutProps) {
+  const { user, logout, groups } = useAuth();
+  const [localGroups, setLocalGroups] = useState<Group[]>(groups);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showExternalDropdown, setShowExternalDropdown] = useState(false);
+  const [burgerOpen, setBurgerOpen] = useState(false);
+  const [activeTabId, setActiveTabId] = useState<string>('personal');
+  const [connectedCalendars, setConnectedCalendars] = useState<string[]>([]);
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState<string>('');
+  const [isNameValid, setIsNameValid] = useState(false);
+  const [nameError, setNameError] = useState<string>('');
+  const [makeEventsPublic, setMakeEventsPublic] = useState(false);
+
+  const handleCreateGroup = () => {
+    setShowCreateGroup(true);
+  };
+
+  const handleNameChange = (value: string) => {
+    const trimmed = value.trim();
+    setNewGroupName(value);
+    if (trimmed.length === 0) {
+      setIsNameValid(false);
+      setNameError('Please enter a name for your shared calendar');
+    } else {
+      setIsNameValid(true);
+      setNameError('');
+    }
+  };
+
+  const handleInviteFriends = () => {
+    const trimmed = newGroupName.trim();
+    if (!trimmed || !user) {
+      setIsNameValid(false);
+      setNameError('Please enter a name for your shared calendar');
+      return;
+    }
+
+    const newGroup: Group = {
+      id: Date.now().toString(),
+      name: trimmed,
+      members: [user.email],
+      makeEventsPublic,
+    };
+
+    setLocalGroups((prev) => [...prev, newGroup]);
+
+    const savedGroups = JSON.parse(localStorage.getItem("groups") || '[]');
+    localStorage.setItem("groups", JSON.stringify([...savedGroups, newGroup]));
+
+    const inviteLink = `${window.location.origin}/invite/${newGroup.id}`;
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      alert(`Invite link copied: ${inviteLink}`);
+      setShowCreateGroup(false);
+      setNewGroupName('');
+    });
+  };
+
+  const tabs = [
+    { id: 'personal', type: 'personal', name: 'My Calendar' },
+    ...localGroups.map((g) => ({ id: g.id, type: 'group', group: g })),
+  ];
+
+  useEffect(() => {
+    if (tabs.length > 1 && activeTabId === 'personal') {
+      setActiveTabId(tabs[0].id);
+    }
+  }, [tabs]);
+
+  const activeTab = tabs.find((t) => t.id === activeTabId) || { type: 'personal' };
+  const isGroupTab = activeTab.type === 'group';
+
+  return (
+    <div className="flex flex-col h-screen font-cute bg-[#fff9e7] text-gray-800">
+      {/* Top Bar */}
+      <div className="flex justify-between items-center px-4 py-2 border-b">
+        <div className="flex items-center space-x-4">
+          <button onClick={() => setBurgerOpen(true)} className="focus:outline-none">
+            <div className="space-y-1">
+              <div className="w-5 h-0.5 bg-gray-800" />
+              <div className="w-5 h-0.5 bg-gray-800" />
+              <div className="w-5 h-0.5 bg-gray-800" />
+            </div>
+          </button>
+          <div className="text-lg font-semibold">
+            {isGroupTab ? (activeTab as any).group?.name : 'My Calendar'}
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2 ml-auto relative">
+          <div className="relative">
+            <button
+              onClick={() => setShowExternalDropdown((prev) => !prev)}
+              className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full shadow-md hover:bg-blue-300 transition-all text-sm"
+            >
+              Add Your Calendar ▾
+            </button>
+
+            {showExternalDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                {['Google', 'Microsoft', 'Apple'].map((type) => (
+                  <button
+                    key={type}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-100 text-sm"
+                    onClick={() => {
+                      setShowExternalDropdown(false);
+                      alert(`${type} Calendar integration coming soon!`);
+                    }}
+                  >
+                    {type} Calendar
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <ProfileMenu
+              show={showProfileMenu}
+              user={user!}
+              onToggle={() => setShowProfileMenu(!showProfileMenu)}
+              onLogout={logout}
+              onProfile={() => {
+                setShowProfileMenu(false);
+                setShowProfileSettings(true);
+              }}
+            />
+            {showProfileSettings && (
+              <ProfileSettings
+                addedCalendars={connectedCalendars}
+                onRemoveCalendar={(calendar: string) =>
+                  setConnectedCalendars((prev) => prev.filter((c) => c !== calendar))
+                }
+                onAddCalendar={(type: string) => {
+                  if (!connectedCalendars.includes(type)) {
+                    setConnectedCalendars((prev) => [...prev, type]);
+                  } else {
+                    alert(`${type} Calendar already added.`);
+                  }
+                }}
+                onClose={() => setShowProfileSettings(false)}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        <Outlet context={{ activeTab, user, makeEventsPublic, setMakeEventsPublic }} />
+      </div>
+
+      {burgerOpen && (
+        <BurgerMenu
+          activeTabId={activeTabId}
+          localGroups={localGroups}
+          onSelectCalendar={(calendar: any) => {
+            if (calendar === 'personal') {
+              setActiveTabId('personal');
+            } else {
+              setActiveTabId(calendar.id);
+            }
+            setBurgerOpen(false);
+          }}
+          onCreateGroup={() => {
+            setBurgerOpen(false);
+            setShowCreateGroup(true);
+          }}
+          onRemoveGroup={async (group: Group) => {
+            if (user && window.confirm(`Remove yourself from ${group.name}?`)) {
+              try {
+                await removeUserFromGroup(group.id, user.id);
+                setLocalGroups((prev) => prev.filter((g) => g.id !== group.id));
+              } catch (e) {
+                alert('Failed to leave the group.');
+                console.error(e);
+              }
+            }
+          }}
+          onClose={() => setBurgerOpen(false)}
+        />
+      )}
+
+      <div className="flex justify-around border-t p-2">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTabId(tab.id)}
+            className={`px-4 py-2 rounded-full shadow-md font-cute transition-all ${
+              activeTabId === tab.id
+                ? 'bg-[#fbc289] text-gray-800'
+                : 'bg-[#ffea96] text-gray-700 hover:bg-[#fff2a0]'
+            }`}
+          >
+            {tab.type === 'personal' ? 'My Calendar' : `${(tab as any).group.name}`}
+          </button>
+        ))}
+
+        <button
+          onClick={handleCreateGroup}
+          className="bg-purple-200 text-purple-800 px-4 py-2 rounded-full shadow-md hover:bg-purple-300 transition-all"
+        >
+          Create Group Calendar
+        </button>
+      </div>
+
+      {showCreateGroup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-bold mb-4">Create Group Calendar</h2>
+            <input
+              type="text"
+              placeholder="Calendar name..."
+              value={newGroupName}
+              onChange={(e) => handleNameChange(e.target.value)}
+              className="w-full border rounded px-3 py-2 mb-2"
+            />
+            {nameError && <p className="text-red-500 text-sm mb-2">{nameError}</p>}
+            <div className="flex items-center mb-4">
+              <label htmlFor="privacyToggle" className="mr-2 text-sm">
+                Make my event titles public
+              </label>
+              <input
+                id="privacyToggle"
+                type="checkbox"
+                checked={makeEventsPublic}
+                onChange={() => setMakeEventsPublic(!makeEventsPublic)}
+                className="w-4 h-4"
+              />
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <button
+                onClick={handleInviteFriends}
+                disabled={!isNameValid}
+                className={`${
+                  isNameValid
+                    ? 'bg-green-200 text-green-800 px-4 py-2 rounded-full shadow-md hover:bg-green-300 transition-all'
+                    : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                }`}
+              >
+                Create Calendar & Copy Invite Link
+              </button>
+              <button
+                onClick={() => setShowCreateGroup(false)}
+                className="mt-3 text-sm underline text-gray-500"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
