@@ -1,6 +1,9 @@
-new sst.x.DevCommand("CreateExampleUser", {
-  dev: {
-    autostart: true,
-    command: `npm run admin-create-user -- --email user@example.com --password Passw0rd!`,
+export const ensureExampleUserExists = new sst.x.DevCommand(
+  "EnsureExampleUserExists",
+  {
+    dev: {
+      autostart: true,
+      command: `npm run ensure-user-exists -- --email user@example.com --password Passw0rd!`,
+    },
   },
-});
+);
