@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useAuth } from "../AuthContext";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "react-oidc-context";
+import { Link, useLocation, useNavigate } from "react-router";
 
-export default function Register() {
-  const { register } = useAuth();
+export default function SignUp() {
+  const { signup } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const location = useLocation();
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ export default function Register() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    register(form);
+    signup(form);
 
     if (redirectTo) {
       navigate(redirectTo);
@@ -22,22 +22,22 @@ export default function Register() {
   };
 
   return (
-<div className="flex h-screen font-cute bg-pink-50">
-  {/* Left: Illustration */}
-  <div className="relative hidden md:flex w-2/3 h-full overflow-hidden">
-    <img
-      src="https://cdn.shopify.com/s/files/1/0758/3993/files/Bees_Lavender.jpg?v=1621533197"
-      className="w-full h-full object-cover"
-      alt="Bees and Lavender"
-    />
-    {/* Gradient overlay with narrower fade */}
-    <div className="absolute inset-0 bg-gradient-to-l from-pink-50 to-transparent [mask-image:linear-gradient(to left,transparent_80%,black)]"></div>
-  </div>
+    <div className="flex h-screen font-cute bg-pink-50">
+      {/* Left: Illustration */}
+      <div className="relative hidden md:flex w-2/3 h-full overflow-hidden">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0758/3993/files/Bees_Lavender.jpg?v=1621533197"
+          className="w-full h-full object-cover"
+          alt="Bees and Lavender"
+        />
+        {/* Gradient overlay with narrower fade */}
+        <div className="absolute inset-0 bg-gradient-to-l from-pink-50 to-transparent [mask-image:linear-gradient(to left,transparent_80%,black)]"></div>
+      </div>
 
-  {/* Right: Form Box */}
-  <div className="flex flex-col justify-center items-center w-full md:w-1/3 px-6">
-    <div className="bg-white p-8 rounded-3xl shadow-lg w-full max-w-md">
-      <h1 className="text-3xl font-bold text-purple-700 mb-6 text-center">
+      {/* Right: Form Box */}
+      <div className="flex flex-col justify-center items-center w-full md:w-1/3 px-6">
+        <div className="bg-white p-8 rounded-3xl shadow-lg w-full max-w-md">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6 text-center">
             🐝 Create Your Busy Bees Account
           </h1>
 

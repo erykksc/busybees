@@ -11,7 +11,7 @@
 //   const [localGroups, setLocalGroups] = useState(groups);
 //   const [showProfileMenu, setShowProfileMenu] = useState(false);
 //   const [showExternalDropdown, setShowExternalDropdown] = useState(false);
-//   const [burgerOpen, setBurgerOpen] = useState(false);  
+//   const [burgerOpen, setBurgerOpen] = useState(false);
 //   const [activeTabId, setActiveTabId] = useState('personal');
 //   const [connectedCalendars, setConnectedCalendars] = useState([]);
 //   const [showProfileSettings, setShowProfileSettings] = useState(false);
@@ -51,7 +51,7 @@
 //         members: [user.email],
 //         makeEventsPublic: makeEventsPublic,
 //     };
-    
+
 //     setLocalGroups(prev => [...prev, newGroup]);
 
 //     const savedGroups = JSON.parse(localStorage.getItem("groups")) || [];
@@ -64,7 +64,6 @@
 //         setNewGroupName('');
 //     });
 //     };
-
 
 //    const tabs = [
 //     { id: 'personal', type: 'personal', name: 'My Calendar' },
@@ -79,7 +78,6 @@
 
 //   const activeTab = tabs.find(t => t.id === activeTabId) || { type: 'personal' };
 //   const isGroupTab = activeTab.type === 'group';
-
 
 //   return (
 //     <div className="flex flex-col h-screen font-cute bg-[#fff9e7] text-gray-800">
@@ -135,8 +133,8 @@
 //                 onToggle={() => setShowProfileMenu(!showProfileMenu)}
 //                 onLogout={logout}
 //                 onProfile={() => {
-//                 setShowProfileMenu(false);       
-//                 setShowProfileSettings(true);    
+//                 setShowProfileMenu(false);
+//                 setShowProfileSettings(true);
 //                  }}
 //             />
 //             {showProfileSettings && (
@@ -196,7 +194,6 @@
 //               />
 //               )}
 
-              
 //       {/* Bottom Tabs */}
 //         <div className="flex justify-around border-t p-2">
 //         {tabs.map((tab) => (
@@ -268,39 +265,46 @@
 //       )}
 
 //     </div>
-    
+
 //   );
 // }
 
-
-import { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
-import ProfileMenu from '../components/ProfileMenu';
-import BurgerMenu from '../components/BurgerMenu';
-import { useAuth } from '../AuthContext';
-import ProfileSettings from '../pages/ProfileSettings';
-import { removeUserFromGroup } from '../hooks/group';
-import { Group, User } from '../types';
+import { useState, useEffect } from "react";
+import { Outlet } from "react-router";
+import { useAuth } from "react-oidc-context";
+import ProfileMenu from "../components/ProfileMenu";
+import BurgerMenu from "../components/BurgerMenu";
+// WARN: the route shouldn't be imported here at all
+import ProfileSettings from "../routes/settings";
+import { removeUserFromGroup } from "../hooks/group";
+import type { Group } from "../../types";
 
 interface CalendarLayoutProps {
   onProfile: () => void;
   burgerMenuProps: any; // you can replace 'any' with a more specific type if available
 }
 
-export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarLayoutProps) {
-  const { user, logout, groups } = useAuth();
-  const [localGroups, setLocalGroups] = useState<Group[]>(groups);
+export default function CalendarLayout({
+  onProfile,
+  burgerMenuProps,
+}: CalendarLayoutProps) {
+  const auth = useAuth();
+  const [localGroups, setLocalGroups] = useState<Group[]>([]);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showExternalDropdown, setShowExternalDropdown] = useState(false);
   const [burgerOpen, setBurgerOpen] = useState(false);
-  const [activeTabId, setActiveTabId] = useState<string>('personal');
+  const [activeTabId, setActiveTabId] = useState<string>("personal");
   const [connectedCalendars, setConnectedCalendars] = useState<string[]>([]);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const [newGroupName, setNewGroupName] = useState<string>('');
+  const [newGroupName, setNewGroupName] = useState<string>("");
   const [isNameValid, setIsNameValid] = useState(false);
-  const [nameError, setNameError] = useState<string>('');
+  const [nameError, setNameError] = useState<string>("");
   const [makeEventsPublic, setMakeEventsPublic] = useState(false);
+
+  if (auth.isLoading) {
+    return <div>Loading...</div>;
+  }
 
   const handleCreateGroup = () => {
     setShowCreateGroup(true);
@@ -311,61 +315,66 @@ export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarL
     setNewGroupName(value);
     if (trimmed.length === 0) {
       setIsNameValid(false);
-      setNameError('Please enter a name for your shared calendar');
+      setNameError("Please enter a name for your shared calendar");
     } else {
       setIsNameValid(true);
-      setNameError('');
+      setNameError("");
     }
   };
 
   const handleInviteFriends = () => {
     const trimmed = newGroupName.trim();
-    if (!trimmed || !user) {
+    if (!trimmed || !auth.user) {
       setIsNameValid(false);
-      setNameError('Please enter a name for your shared calendar');
+      setNameError("Please enter a name for your shared calendar");
       return;
     }
 
     const newGroup: Group = {
       id: Date.now().toString(),
       name: trimmed,
-      members: [user.email],
+      members: [auth.user.profile.email || ""],
       makeEventsPublic,
     };
 
     setLocalGroups((prev) => [...prev, newGroup]);
 
-    const savedGroups = JSON.parse(localStorage.getItem("groups") || '[]');
+    const savedGroups = JSON.parse(localStorage.getItem("groups") || "[]");
     localStorage.setItem("groups", JSON.stringify([...savedGroups, newGroup]));
 
     const inviteLink = `${window.location.origin}/invite/${newGroup.id}`;
     navigator.clipboard.writeText(inviteLink).then(() => {
       alert(`Invite link copied: ${inviteLink}`);
       setShowCreateGroup(false);
-      setNewGroupName('');
+      setNewGroupName("");
     });
   };
 
   const tabs = [
-    { id: 'personal', type: 'personal', name: 'My Calendar' },
-    ...localGroups.map((g) => ({ id: g.id, type: 'group', group: g })),
+    { id: "personal", type: "personal", name: "My Calendar" },
+    ...localGroups.map((g) => ({ id: g.id, type: "group", group: g })),
   ];
 
   useEffect(() => {
-    if (tabs.length > 1 && activeTabId === 'personal') {
+    if (tabs.length > 1 && activeTabId === "personal") {
       setActiveTabId(tabs[0].id);
     }
   }, [tabs]);
 
-  const activeTab = tabs.find((t) => t.id === activeTabId) || { type: 'personal' };
-  const isGroupTab = activeTab.type === 'group';
+  const activeTab = tabs.find((t) => t.id === activeTabId) || {
+    type: "personal",
+  };
+  const isGroupTab = activeTab.type === "group";
 
   return (
     <div className="flex flex-col h-screen font-cute bg-[#fff9e7] text-gray-800">
       {/* Top Bar */}
       <div className="flex justify-between items-center px-4 py-2 border-b">
         <div className="flex items-center space-x-4">
-          <button onClick={() => setBurgerOpen(true)} className="focus:outline-none">
+          <button
+            onClick={() => setBurgerOpen(true)}
+            className="focus:outline-none"
+          >
             <div className="space-y-1">
               <div className="w-5 h-0.5 bg-gray-800" />
               <div className="w-5 h-0.5 bg-gray-800" />
@@ -373,7 +382,7 @@ export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarL
             </div>
           </button>
           <div className="text-lg font-semibold">
-            {isGroupTab ? (activeTab as any).group?.name : 'My Calendar'}
+            {isGroupTab ? (activeTab as any).group?.name : "My Calendar"}
           </div>
         </div>
 
@@ -388,7 +397,7 @@ export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarL
 
             {showExternalDropdown && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                {['Google', 'Microsoft', 'Apple'].map((type) => (
+                {["Google", "Microsoft", "Apple"].map((type) => (
                   <button
                     key={type}
                     className="w-full px-4 py-2 text-left hover:bg-gray-100 text-sm"
@@ -407,19 +416,15 @@ export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarL
           <div className="flex items-center space-x-2">
             <ProfileMenu
               show={showProfileMenu}
-              user={user!}
               onToggle={() => setShowProfileMenu(!showProfileMenu)}
-              onLogout={logout}
-              onProfile={() => {
-                setShowProfileMenu(false);
-                setShowProfileSettings(true);
-              }}
             />
             {showProfileSettings && (
               <ProfileSettings
                 addedCalendars={connectedCalendars}
                 onRemoveCalendar={(calendar: string) =>
-                  setConnectedCalendars((prev) => prev.filter((c) => c !== calendar))
+                  setConnectedCalendars((prev) =>
+                    prev.filter((c) => c !== calendar),
+                  )
                 }
                 onAddCalendar={(type: string) => {
                   if (!connectedCalendars.includes(type)) {
@@ -436,7 +441,9 @@ export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarL
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <Outlet context={{ activeTab, user, makeEventsPublic, setMakeEventsPublic }} />
+        <Outlet
+          context={{ activeTab, makeEventsPublic, setMakeEventsPublic }}
+        />
       </div>
 
       {burgerOpen && (
@@ -444,8 +451,8 @@ export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarL
           activeTabId={activeTabId}
           localGroups={localGroups}
           onSelectCalendar={(calendar: any) => {
-            if (calendar === 'personal') {
-              setActiveTabId('personal');
+            if (calendar === "personal") {
+              setActiveTabId("personal");
             } else {
               setActiveTabId(calendar.id);
             }
@@ -461,7 +468,7 @@ export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarL
                 await removeUserFromGroup(group.id, user.id);
                 setLocalGroups((prev) => prev.filter((g) => g.id !== group.id));
               } catch (e) {
-                alert('Failed to leave the group.');
+                alert("Failed to leave the group.");
                 console.error(e);
               }
             }
@@ -477,11 +484,13 @@ export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarL
             onClick={() => setActiveTabId(tab.id)}
             className={`px-4 py-2 rounded-full shadow-md font-cute transition-all ${
               activeTabId === tab.id
-                ? 'bg-[#fbc289] text-gray-800'
-                : 'bg-[#ffea96] text-gray-700 hover:bg-[#fff2a0]'
+                ? "bg-[#fbc289] text-gray-800"
+                : "bg-[#ffea96] text-gray-700 hover:bg-[#fff2a0]"
             }`}
           >
-            {tab.type === 'personal' ? 'My Calendar' : `${(tab as any).group.name}`}
+            {tab.type === "personal"
+              ? "My Calendar"
+              : `${(tab as any).group.name}`}
           </button>
         ))}
 
@@ -504,7 +513,9 @@ export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarL
               onChange={(e) => handleNameChange(e.target.value)}
               className="w-full border rounded px-3 py-2 mb-2"
             />
-            {nameError && <p className="text-red-500 text-sm mb-2">{nameError}</p>}
+            {nameError && (
+              <p className="text-red-500 text-sm mb-2">{nameError}</p>
+            )}
             <div className="flex items-center mb-4">
               <label htmlFor="privacyToggle" className="mr-2 text-sm">
                 Make my event titles public
@@ -523,8 +534,8 @@ export default function CalendarLayout({ onProfile, burgerMenuProps }: CalendarL
                 disabled={!isNameValid}
                 className={`${
                   isNameValid
-                    ? 'bg-green-200 text-green-800 px-4 py-2 rounded-full shadow-md hover:bg-green-300 transition-all'
-                    : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                    ? "bg-green-200 text-green-800 px-4 py-2 rounded-full shadow-md hover:bg-green-300 transition-all"
+                    : "bg-gray-300 text-gray-600 cursor-not-allowed"
                 }`}
               >
                 Create Calendar & Copy Invite Link
