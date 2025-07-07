@@ -2,6 +2,10 @@
   "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
     "module": "ESNext",
-    "moduleResolution": "Bundler"
+    "moduleResolution": "Bundler",
+    "baseUrl": "src",
+    "paths": {
+      "@busybees/core": ["../../core/src"]
+    }
   }
 }

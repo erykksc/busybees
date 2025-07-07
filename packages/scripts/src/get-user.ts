@@ -1,39 +1,30 @@
 import { Resource } from "sst";
-import { execSync } from "child_process";
+import {
+  CognitoIdentityProviderClient,
+  AdminGetUserCommand,
+} from "@aws-sdk/client-cognito-identity-provider";
+import { getArgValue, defaultUsername } from "./utils";
 
 /**
  * Script to get Cognito user details
  * Run with: sst shell src/get-user.ts --username user@example.com
  */
 
-// Parse command line arguments
-const args = process.argv.slice(2);
-const getArgValue = (argName: string): string => {
-  const index = args.indexOf(`--${argName}`);
-  if (index === -1 || index + 1 >= args.length) {
-    throw new Error(`Missing required argument: --${argName}`);
-  }
-  return args[index + 1];
-};
+const client = new CognitoIdentityProviderClient({
+  region: Resource.AwsRegion.value,
+});
 
-const USERNAME = getArgValue("username");
+async function getUser() {
+  const command = new AdminGetUserCommand({
+    UserPoolId: Resource.MyUserPool.id,
+    Username: getArgValue("username", defaultUsername),
+  });
 
-const region = process.env.AWS_REGION || "eu-central-1";
+  const response = await client.send(command);
 
-const command = `aws cognito-idp admin-get-user \
-  --region ${region} \
-  --user-pool-id ${Resource.MyUserPool.id} \
-  --username ${USERNAME}`;
-
-console.log("Executing get user details command...");
-console.log(command);
-console.log("---");
-
-try {
-  const result = execSync(command, { encoding: "utf-8" });
-  console.log("Result:", result);
-} catch (error: any) {
-  console.error("Error:", error.message);
-  if (error.stdout) console.log("stdout:", error.stdout);
-  if (error.stderr) console.log("stderr:", error.stderr);
+  console.log("AdminGetUser response:", response);
 }
+
+getUser().catch((error) => {
+  console.error("Error fetching user details:", error);
+});

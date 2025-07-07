@@ -141,11 +141,34 @@ sst secret set GoogleRedirectUri "https://your-api-domain/api/oauth/google/callb
 
 ### API Endpoints
 
-- `GET /api/oauth/google/start` - Initiates OAuth flow (authenticated)
-- `GET /api/oauth/google/callback` - Handles OAuth callback (unauthenticated)
-- `GET /api/user/calendars` - Returns user's calendar connections (authenticated)
+#### OAuth Flow Endpoints
 
-### Frontend Routes
+- `GET /api/oauth/google/start` - Initiates OAuth flow for google calendar (authenticated)
+- `GET /api/oauth/google/callback` - Handles OAuth callback from google (unauthenticated)
+
+#### Logged in User's Endpoints
+
+- `GET /api/user/profile` - Get profile of the authenticated in user (settings, calendar integrations)
+- `POST /api/user/profile` - Update profile of the authenticated user (settings, calendar integrations)
+- `GET /api/user/events?from&until` - Fetch events from all calendars of the authenticated user `from` to `until` date-times
+- `POST /api/user/events` - Update events of the authenticated user
+
+#### Group Endpoints
+
+- `POST /api/groups` - Create new group
+- `GET /api/groups/:groupId/profile` - Fetch profile of the group e.g., settings, members, invite link
+- `POST /api/groups/:groupId/profile` - Update profile of the group e.g., change settings or kick somebody out
+- `GET /api/groups/:groupId/events?from&until` - Fetch events from all calendars of all group members `from` to `until` specified date-times
+- `POST /api/groups/:groupId/events` - Create/Update/Delete events in the group calendar
+
+#### Test Endpoints
+
+Those endpoints don't serve a purpose in the app, they are only there to test if the API is reachable and if authentication protection on routes work
+
+- `GET /api/public` - not protected Endpoint
+- `GET /api/private` - protected Endpoint
+
+### Frontend Endpoint
 
 - `/calendar` - Calendar integration page with "Add Google Calendar" button
 - Uses React Router v7 loader function for server-side data fetching

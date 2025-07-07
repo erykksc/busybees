@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "type": "module",
   "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.840.0",
     "@busybees/core": "*",
+    "aws-sdk": "^2.1692.0",
     "sst": "*"
   },
   "scripts": {
