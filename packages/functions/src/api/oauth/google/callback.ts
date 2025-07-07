@@ -5,15 +5,12 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { decodeOauthState, BbOauthState } from "@busybees/core";
 import { parseCookies } from "utils";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  GetCommand,
-  PutCommand,
-  UpdateCommand,
-} from "@aws-sdk/lib-dynamodb";
-import { User, GoogleCalendarConnection } from "@busybees/core";
+import { upsertGoogleCalendarInUserProfile } from "@busybees/core";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
-const client = new DynamoDBClient({});
+const client = new DynamoDBClient({
+  region: Resource.AwsRegion.value,
+});
 const docClient = DynamoDBDocumentClient.from(client);
 const logger = new Logger({
   serviceName: "sst-app",
@@ -120,7 +117,6 @@ export const main = async (
     });
 
     // Exchange code for tokens
-    logger.info("Exchanging code for tokens with Google OAuth2 client");
     const { tokens } = await oauth2Client.getToken(code);
     logger.info("OAuth tokens received from Google by exchanging the `code`", {
       tokens: Object.keys(tokens),
@@ -143,67 +139,28 @@ export const main = async (
       resourceName: "people/me",
       personFields: "emailAddresses",
     });
-    const email = profile.data.emailAddresses?.[0]?.value;
+    const primaryEmail = profile.data.emailAddresses?.[0]?.value;
+    if (!primaryEmail) {
+      logger.error("could not fetch primary email from Google People API");
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          error: "Could not fetch primary email from Google People API",
+        }),
+      };
+    }
     logger.info("Fetched user email from Google People API", {
-      email,
+      email: primaryEmail,
       profile,
     });
 
-    // Get user's primary calendar info
-    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
-    const calendarList = await calendar.calendarList.list();
-    const calendarNames = calendarList.data.items?.map((item) => item.summary);
-    logger.info("Fetched calendar names list from Google Calendar API", {
-      calendarNames,
-    });
-
-    // Get or create user record
-    const getUserCommand = new GetCommand({
-      TableName: Resource.UsersTable.name,
-      Key: { authSub: stateData.authSub },
-    });
-
-    const userResult = await docClient.send(getUserCommand);
-    let user: User = userResult.Item as User;
-    logger.info("Fetched user record from DynamoDB", { user });
-
-    if (!user) {
-      // Create new user record
-      user = {
-        authSub: stateData.authSub,
-        googleCalendars: [],
-      };
-    }
-
-    // Create new Google Calendar connection
-    const newConnection: GoogleCalendarConnection = {
-      email: email!,
-      tokens: tokens,
-    };
-
-    // Update or add the calendar connection
-    const existingIndex = user.googleCalendars.findIndex(
-      (cal) => cal.email === email,
+    const results = await upsertGoogleCalendarInUserProfile(
+      docClient,
+      stateData.authSub,
+      primaryEmail,
+      tokens,
     );
-
-    if (existingIndex >= 0) {
-      user.googleCalendars[existingIndex] = newConnection;
-    } else {
-      user.googleCalendars.push(newConnection);
-    }
-
-    // Save updated user record
-    const putCommand = new PutCommand({
-      TableName: Resource.UsersTable.name,
-      Item: user,
-    });
-
-    const putOutput = await docClient.send(putCommand);
-    logger.info("User record upserted successfully", {
-      authSub: stateData.authSub,
-      email: email,
-    });
-    logger.debug("PutCommand output", putOutput);
+    logger.info("Google Calendar connection upserted", { results });
 
     // Redirect to calendar page
     return {
