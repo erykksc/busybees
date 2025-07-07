@@ -22,7 +22,12 @@ const client = new CognitoIdentityProviderClient({
 export async function ensureUserExistsAndLogin(
   username: string,
   password: string,
-) {
+): Promise<{
+  success: boolean;
+  message: string;
+  idToken?: string;
+  error?: { name: string; message: string };
+}> {
   let userExists = false;
 
   try {
@@ -100,7 +105,7 @@ export async function ensureUserExistsAndLogin(
 
     const response = await client.send(authCommand);
 
-    const token = response.AuthenticationResult?.IdToken || null;
+    const token = response.AuthenticationResult?.IdToken;
 
     const result = {
       success: true,

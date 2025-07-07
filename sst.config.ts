@@ -31,7 +31,7 @@ export default $config({
       SiteUrl: website.url,
       UserPoolId: auth.userPool.id,
       UserPoolClientId: auth.userPoolClient.id,
-      AwsRegion: awsRegion,
+      AwsRegion: awsRegion.properties.value,
     };
   },
 });

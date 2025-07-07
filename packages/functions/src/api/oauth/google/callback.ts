@@ -53,11 +53,19 @@ export const main = async (
       (s) => !receivedScopes.includes(s),
     );
     if (missingScopes.length > 0) {
-      logger.error("Missing required scopes", {
+      const error = {
         required: requiredScopes,
         received: receivedScopes,
         missing: missingScopes,
-      });
+      };
+
+      logger.error("Missing required scopes", error);
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          error,
+        }),
+      };
     }
 
     const state = event.queryStringParameters?.state;
@@ -103,7 +111,7 @@ export const main = async (
       };
     }
 
-    console.log("Request data validated successfully");
+    logger.info("Request data validated successfully");
 
     const oauth2Client = new google.auth.OAuth2({
       clientId: Resource.GoogleClientId.value,
@@ -120,7 +128,7 @@ export const main = async (
     if (!tokens.access_token || !tokens.refresh_token) {
       const errorMsg =
         "`access_token` or `refresh_token` not found in the response from Google";
-      console.error(errorMsg);
+      logger.error(errorMsg);
       return {
         statusCode: 400,
         body: JSON.stringify({ error: errorMsg }),
@@ -145,10 +153,9 @@ export const main = async (
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
     const calendarList = await calendar.calendarList.list();
     const calendarNames = calendarList.data.items?.map((item) => item.summary);
-    console.log(
-      "Fetched calendar names list from Google Calendar API",
-      JSON.stringify(calendarNames, null, 2),
-    );
+    logger.info("Fetched calendar names list from Google Calendar API", {
+      calendarNames,
+    });
 
     // Get or create user record
     const getUserCommand = new GetCommand({
@@ -207,7 +214,7 @@ export const main = async (
       body: "",
     };
   } catch (error) {
-    console.error("Error in OAuth callback:", error);
+    logger.error("Error in OAuth callback:", { error });
     return {
       statusCode: 500,
       body: JSON.stringify({ error: "Internal server error" }),

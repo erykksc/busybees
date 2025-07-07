@@ -1,5 +1,5 @@
 import { ensureUserExistsAndLogin } from "@busybees/core/dev";
-import { defaultPassword, defaultUsername, getArgValue } from "utils";
+import { defaultPassword, defaultUsername, getArgValue } from "./utils";
 
 const username = getArgValue("username", defaultUsername);
 const password = getArgValue("password", defaultPassword);
