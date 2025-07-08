@@ -1,11 +1,7 @@
-export { addGroupCalendar } from "./addGroupCalendar";
-export {
-  getGroupCalendar,
-  getGroupCalendarByInviteCode,
-} from "./getGroupCalendar";
-export { removeGroupCalendar } from "./removeGroupCalendar";
-export { updateGroupCalendar } from "./updateGroupCalendar";
-export { addMemberToGroupCalendar } from "./addMemberToGroupCalendar";
-export { removeMemberFromGroupCalendar } from "./removeMemberFromGroupCalendar";
-export type { GroupCalendar } from "./groupCalendar";
-
+export * from "./addGroupCalendar";
+export * from "./getGroupCalendar";
+export * from "./removeGroupCalendar";
+export * from "./updateGroupCalendar";
+export * from "./addMemberToGroupCalendar";
+export * from "./removeMemberFromGroupCalendar";
+export * from "./groupCalendar";
