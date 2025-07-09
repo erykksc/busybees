@@ -9,7 +9,9 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.840.0",
     "@aws-sdk/lib-dynamodb": "^3.840.0",
+    "@aws-lambda-powertools/logger": "^2.23.0",
     "@busybees/core": "*",
+    "cookie": "^1.0.2",
     "googleapis": "^150.0.1",
     "sst": "*"
   },

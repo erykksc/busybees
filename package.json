@@ -21,13 +21,6 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^2.23.0",
-    "@tailwindcss/aspect-ratio": "^0.4.2",
-    "@tailwindcss/forms": "^0.5.10",
-    "@tailwindcss/typography": "^0.5.16",
-    "clsx": "^2.1.1",
-    "cookie": "^1.0.2",
-    "dayjs": "^1.11.13",
-    "sst": "^3.17.10"
+    "sst": "^3"
   }
 }
