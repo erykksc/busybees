@@ -1,4 +1,5 @@
 import { Resource } from "sst";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   CognitoIdentityProviderClient,
   AdminGetUserCommand,
@@ -6,7 +7,13 @@ import {
   AdminSetUserPasswordCommand,
   AdminConfirmSignUpCommand,
   AdminInitiateAuthCommand,
+  ChangePasswordCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
+import { addUserProfile } from "../user/addUserProfile";
+import {
+  DynamoDBDocument,
+  DynamoDBDocumentClient,
+} from "@aws-sdk/lib-dynamodb";
 
 const client = new CognitoIdentityProviderClient({
   region: Resource.AwsRegion.value,
@@ -58,7 +65,7 @@ export async function ensureUserExistsAndLogin(
   if (!userExists) {
     console.error(`Creating user ${username}...`);
 
-    await client.send(
+    const createdResponse = await client.send(
       new AdminCreateUserCommand({
         UserPoolId: Resource.MyUserPool.id,
         Username: username,
@@ -66,6 +73,8 @@ export async function ensureUserExistsAndLogin(
         MessageAction: "SUPPRESS",
       }),
     );
+
+    console.error("User created:", JSON.stringify(createdResponse, null, 2));
 
     console.error("Setting user password...");
 
@@ -77,43 +86,30 @@ export async function ensureUserExistsAndLogin(
         Permanent: true,
       }),
     );
-
-    console.error("Confirming user signup...");
-
-    await client.send(
-      new AdminConfirmSignUpCommand({
-        UserPoolId: Resource.MyUserPool.id,
-        Username: username,
-      }),
-    );
-
-    console.error(`User ${username} created and confirmed.`);
   }
+
+  let token = "";
 
   try {
     console.error(`Attempting login for ${username}...`);
 
-    const authCommand = new AdminInitiateAuthCommand({
-      UserPoolId: Resource.MyUserPool.id,
-      ClientId: Resource.MyUserPoolClient.id,
-      AuthFlow: "ADMIN_NO_SRP_AUTH",
-      AuthParameters: {
-        USERNAME: username,
-        PASSWORD: password,
-      },
-    });
+    const response = await client.send(
+      new AdminInitiateAuthCommand({
+        UserPoolId: Resource.MyUserPool.id,
+        ClientId: Resource.MyUserPoolClient.id,
+        AuthFlow: "ADMIN_NO_SRP_AUTH",
+        AuthParameters: {
+          USERNAME: username,
+          PASSWORD: password,
+        },
+      }),
+    );
+    const idToken = response.AuthenticationResult?.IdToken;
+    if (!idToken) {
+      throw new Error("No ID token received from authentication.");
+    }
 
-    const response = await client.send(authCommand);
-
-    const token = response.AuthenticationResult?.IdToken;
-
-    const result = {
-      success: true,
-      message: `User ${username} ensured and logged in.`,
-      idToken: token,
-    };
-
-    return result;
+    token = idToken;
   } catch (error: any) {
     return {
       success: false,
@@ -124,4 +120,31 @@ export async function ensureUserExistsAndLogin(
       },
     };
   }
+
+  try {
+    console.error("Creating user profile in DynamoDB...");
+
+    const dbClient = new DynamoDBClient({
+      region: Resource.AwsRegion.value,
+    });
+    const docClient = DynamoDBDocumentClient.from(dbClient);
+
+    const addProfileResponse = await addUserProfile(docClient, {
+      authSub: token,
+    });
+    console.error(
+      "User profile added:",
+      JSON.stringify(addProfileResponse, null, 2),
+    );
+  } catch (error: any) {
+    console.error("Error adding user profile:", error);
+  }
+
+  const result = {
+    success: true,
+    message: `User ${username} ensured and logged in.`,
+    idToken: token,
+  };
+
+  return result;
 }

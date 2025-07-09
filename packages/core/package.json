@@ -3,7 +3,8 @@
   "type": "module",
   "version": "0.0.0",
   "scripts": {
-    "test": "sst shell vitest"
+    "test": "sst shell vitest",
+    "test:watch": "sst shell vitest -- --watch"
   },
   "exports": {
     "./*": [
@@ -12,7 +13,9 @@
     ]
   },
   "dependencies": {
-    "sst": "*"
+    "@aws-sdk/lib-dynamodb": "^3.840.0",
+    "sst": "*",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "vitest": "^2"

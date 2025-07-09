@@ -1,5 +1,10 @@
 export const userPool = new sst.aws.CognitoUserPool("MyUserPool", {
   usernames: ["email"],
+  triggers: {
+    postConfirmation: {
+      handler: "packages/functions/src/api/auth/postConfirmation.main",
+    },
+  },
 });
 
 export const userPoolClient = userPool.addClient("MyUserPoolClient", {

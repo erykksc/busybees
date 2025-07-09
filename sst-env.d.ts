@@ -21,6 +21,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "GroupCalendarsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
     "MyApi": {
       "type": "sst.aws.ApiGatewayV2"
       "url": string
@@ -38,7 +42,7 @@ declare module "sst" {
       "type": "sst.aws.React"
       "url": string
     }
-    "UsersTable": {
+    "UserProfilesTable": {
       "name": string
       "type": "sst.aws.Dynamo"
     }
