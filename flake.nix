@@ -23,6 +23,7 @@
               inherit system;
               overlays = [ inputs.self.overlays.default ];
             };
+            system = system;
           }
         );
     in
@@ -31,19 +32,31 @@
         nodejs = final."nodejs_${toString nodejsVersion}";
       };
 
+      # ➡️ new: package environment
+      packages = forEachSupportedSystem (
+        { pkgs, system }:
+        {
+          devEnv = pkgs.buildEnv {
+            name = "busy-bees-dev-env";
+            paths = [
+              pkgs.awscli2
+              pkgs.nixfmt-rfc-style
+              pkgs.nodejs
+              pkgs.nodePackages.vercel
+            ];
+          };
+        }
+      );
+
       devShells = forEachSupportedSystem (
-        { pkgs }:
+        { pkgs, system }:
         {
           default = pkgs.mkShell {
             packages = with pkgs; [
-              awscli2
-              nixfmt-rfc-style
-              nodejs
-              nodePackages.vercel
+              inputs.self.packages.${system}.devEnv
             ];
           };
         }
       );
     };
 }
-
