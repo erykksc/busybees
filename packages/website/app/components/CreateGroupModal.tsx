@@ -1,5 +1,5 @@
 import React from "react";
-import { CreateGroupModalProps } from "../types"; // adjust path as needed
+import type { CreateGroupModalProps } from "~/types"; // adjust path as needed
 
 export default function CreateGroupModal({
   newGroupName,
@@ -12,7 +12,7 @@ export default function CreateGroupModal({
   onClose
 }: CreateGroupModalProps) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-xl shadow-lg max-w-sm w-full">
         <h2 className="text-lg font-bold mb-4">Create Shared Calendar</h2>
         <input

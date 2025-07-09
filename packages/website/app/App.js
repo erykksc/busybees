@@ -5,7 +5,7 @@ import Invite from "./pages/Invite";
 import CalendarPage from "./pages/CalendarPage";
 import ProfileSettings from "./pages/ProfileSettings";
 import CalendarLayout from "./layouts/CalendarLayout";
-import { AuthProvider } from "./AuthContext";
+import { AuthProvider } from "../AuthContext";
 
 function App() {
   return (

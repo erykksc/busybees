@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import clsx from 'clsx';
 import CreateEventModal from './CreateEventModal'
 import isBetween from 'dayjs/plugin/isBetween'
-import { Event, User } from '../types';
-import { useAuth } from '../AuthContext';
-
+import type { Event, User } from '~/types';
+import { useAuth } from "react-oidc-context";
 dayjs.extend(isBetween);
 const getDaysInMonth = (year: number, month: number): (number | null)[] => {
   const days = [];
@@ -22,7 +21,7 @@ const getDaysInMonth = (year: number, month: number): (number | null)[] => {
 };
 
 const MyCalendar = () => {
-  const { user } = useAuth();
+  const auth = useAuth();
   const [showEventModal, setShowEventModal] = useState(false);
   const [eventTitle, setEventTitle] = useState('');
   const [eventDate, setEventDate] = useState('');
@@ -40,6 +39,35 @@ const MyCalendar = () => {
     if (viewDate.isAfter(now)) setViewDate(viewDate.subtract(1, 'month'));
   };
 
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!auth.user) return;
+  
+      const from = viewDate.startOf('month').toISOString();
+      const until = viewDate.endOf('month').toISOString();
+  
+      try {
+        const response = await fetch(`/api/user/events?from=${from}&until=${until}`, {
+          headers: {
+            Authorization: `Bearer ${auth.user.access_token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          console.error("Failed to fetch events.");
+          return;
+        }
+  
+        const data = await response.json();
+        setEvents(data);
+      } catch (err) {
+        console.error("Error fetching events:", err);
+      }
+    };
+  
+    fetchEvents();
+  }, [auth.user, viewDate]);
+
   const eventsOnDay = (day: number): Event[] => {
     if (!day) return [];
     const currentDate = viewDate.date(day).startOf('day');
@@ -51,8 +79,6 @@ const MyCalendar = () => {
             (end.isAfter(start, 'day') && currentDate.isSameOrAfter(start, 'day') && currentDate.isSameOrBefore(end, 'day'));
     });
   };
-
-
 
   const days = getDaysInMonth(viewDate.year(), viewDate.month());
 
@@ -67,41 +93,56 @@ const MyCalendar = () => {
     setShowEventModal(true);
   };
 
-const handleSaveEvent = () => {
+const handleSaveEvent = async () => {
   const eventsToCreate: Event[] = [];
 
   const startDate = dayjs(eventDate);
   const endDate = rangeEndDate ? dayjs(rangeEndDate) : startDate;
 
-  if (!user) {
-  console.warn('User not found, skipping event creation.');
-  return;
-}
-  const currentUser = user as User;
+  if (!auth.user) {
+    console.warn('User not authenticated');
+    return;
+  }
 
   let current = startDate;
-
   while (current.isSameOrBefore(endDate, 'day')) {
     eventsToCreate.push({
       id: String(Date.now() + Math.random()),
       title: eventTitle,
       start: current.format('YYYY-MM-DD') + 'T' + eventStart,
       end: current.format('YYYY-MM-DD') + 'T' + eventEnd,
-      userId: currentUser.id,
+      userId: auth.user.profile.sub, // or another unique ID from your backend
       allDay: !eventStart || !eventEnd,
     });
 
     if (repeatType === 'daily') current = current.add(1, 'day');
     else if (repeatType === 'weekly') current = current.add(1, 'week');
     else if (repeatType === 'yearly') current = current.add(1, 'year');
-    else break; // none
+    else break;
   }
 
-  console.log('Events created:', eventsToCreate);
+  try {
+    const response = await fetch('/api/user/events', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${auth.user.access_token}`,
+      },
+      body: JSON.stringify(eventsToCreate),
+    });
 
-  setEvents(prev => [...prev, ...eventsToCreate]); 
-  setShowEventModal(false);
+    if (!response.ok) {
+      console.error("Failed to save events.");
+      return;
+    }
+
+    setEvents(prev => [...prev, ...eventsToCreate]);
+    setShowEventModal(false);
+  } catch (err) {
+    console.error("Error saving events:", err);
+  }
 };
+
 
 
 

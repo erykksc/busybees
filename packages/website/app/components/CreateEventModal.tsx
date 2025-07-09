@@ -1,4 +1,4 @@
-import type { CreateEventModalProps } from "../../types"; // adjust path as needed
+import type { CreateEventModalProps } from "~/types";
 
 const CreateEventModal = ({
   show,
@@ -19,7 +19,7 @@ const CreateEventModal = ({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 backdrop-blur-md flex justify-center items-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg">
         <h3 className="text-lg font-bold mb-4">Create Event</h3>
 

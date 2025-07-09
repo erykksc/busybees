@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
 import dayjs from 'dayjs'
-import { users, mockEvents } from '../data/mockEvents'
-import clsx from 'clsx'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import CreateEventModal from './CreateEventModal'
 import InviteModal from './InviteModal'
 import { removeUserFromGroup } from '../hooks/group'
-import{User, Group, Event} from '../types'
+import type {User, Group, Event} from '~/types'
+import { useAuth } from 'react-oidc-context';
 
 dayjs.extend(isSameOrAfter)
 dayjs.extend(isSameOrBefore)
@@ -76,6 +75,7 @@ const GroupCalendar = ({
   makeEventsPublic: boolean;
   setMakeEventsPublic: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+const auth = useAuth();
 const [viewDate, setViewDate] = useState(dayjs())
 const [showFreeSpots, setShowFreeSpots] = useState(false)
 const DEFAULT_START = 8 
@@ -94,17 +94,82 @@ const [eventEnd, setEventEnd] = useState('');
 const [allDay, setAllDay] = useState(false);
 const [repeatType, setRepeatType] = useState('none'); 
 const [rangeEndDate, setRangeEndDate] = useState(''); 
-const [events, setEvents] = useState(mockEvents);
+const [events, setEvents] = useState<Event[]>([]);
 const [showInviteModal, setShowInviteModal] = useState(false);
-const [groupMembers, setGroupMembers] = useState<string[]>(group.members || []);
+const [groupMembers, setGroupMembers] = useState<User[]>([]);
+const [users, setUsers] = useState<User[]>([]);
+
+useEffect(() => {
+  const fetchGroupMembers = async () => {
+    if (!auth.user) return;
+
+    try {
+      const res = await fetch(`/api/groups/${group.id}/profile`, {
+        headers: {
+          Authorization: `Bearer ${auth.user.access_token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch group profile");
+
+      const data = await res.json();
+      setUsers(data.members); // Make sure `data.members` is a User[]
+    } catch (err) {
+      console.error("Error fetching group members:", err);
+    }
+  };
+
+  fetchGroupMembers();
+}, [group.id, auth.user]);
 
 
-  useEffect(() => {
-    const savedStart = localStorage.getItem(`group:${group.id}:dayStart`)
-    const savedEnd = localStorage.getItem(`group:${group.id}:dayEnd`)
-    if (savedStart) setDayStart(Number(savedStart))
-    if (savedEnd) setDayEnd(Number(savedEnd))
-  }, [group.id])
+useEffect(() => {
+  const fetchGroupProfile = async () => {
+    try {
+      const response = await fetch(`/api/groups/${group.id}/profile`, {
+        headers: {
+          Authorization: `Bearer ${auth.user?.access_token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch group profile");
+      }
+
+      const data = await response.json();
+      setGroupMembers(data.members); // Assuming API returns `members: User[]`
+    } catch (err) {
+      console.error("Error fetching group profile:", err);
+    }
+  };
+
+  fetchGroupProfile();
+}, [group.id]);
+
+
+useEffect(() => {
+  const fetchGroupEvents = async () => {
+    if (!auth.user) return;
+    const from = viewDate.startOf('month').toISOString();
+    const until = viewDate.endOf('month').toISOString();
+
+    try {
+      const response = await fetch(`/api/groups/${group.id}/events?from=${from}&until=${until}`, {
+        headers: {
+          Authorization: `Bearer ${auth.user.access_token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch events.');
+      const data = await response.json();
+      setEvents(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  fetchGroupEvents();
+}, [viewDate, group.id, auth.user]);
 
   const handleInviteAgain = () => {
       const inviteLink = `${window.location.origin}/invite/${group.id}`;
@@ -121,8 +186,8 @@ const [groupMembers, setGroupMembers] = useState<string[]>(group.members || []);
   const eventsOnDay = (day: number): Event[] => {
     if (!day) return []
     const date = viewDate.date(day).format('YYYY-MM-DD')
-    return mockEvents.filter(e => dayjs(e.start).format('YYYY-MM-DD') === date)
-  }
+    return events.filter(e => dayjs(e.start).format('YYYY-MM-DD') === date);
+    }
 
     const openModal = () => {
     setTempStart(dayStart)
@@ -201,20 +266,22 @@ const handleFreeSlotSelect = (slot: Slot, date: dayjs.Dayjs) => {
 
 {showInviteModal && (
   <InviteModal
-    group={group}
-    members={groupMembers}
-    onRemove={async (userId: string) => {
-      try {
-        await removeUserFromGroup(group.id, userId)
-        setGroupMembers((prev) => prev.filter((email) => email !== userId));
-      } catch (e) {
-        alert('Failed to remove user.')
-        console.error(e)
-      }
-    }}
-    onClose={() => setShowInviteModal(false)}
-  />
+  group={group}
+  members={groupMembers}
+  onRemove={async (userId: string) => {
+    try {
+      await removeUserFromGroup(group.id, userId);
+      setGroupMembers((prev) => prev.filter((u) => u.id !== userId));
+    } catch (e) {
+      alert("Failed to remove user.");
+      console.error(e);
+    }
+  }}
+  onClose={() => setShowInviteModal(false)}
+/>
+
 )}
+
 
 
   <h2 className="text-2xl font-bold text-center flex-1">{group.name}</h2>
@@ -289,13 +356,12 @@ const handleFreeSlotSelect = (slot: Slot, date: dayjs.Dayjs) => {
             >
               <div className="text-xs font-bold">{d}</div>
               {dayEvents.map(ev => {
-                const user = users.find(u => u.id === ev.userId)
-                if (!user) return null;
-                const isPrivate = !user.showTitles
-                const title = ev.allDay
-                  ? `${user.name} (All Day)`
-                  : (isPrivate ? `${user.name}'s Event` : ev.title)
-
+                  const user = users.find((u: User) => u.id === ev.userId);
+                  if (!user) return null;
+                  const isPrivate = !user.showTitles;
+                  const title = ev.allDay
+                    ? `${user.name} (All Day)`
+                    : (isPrivate ? `${user.name}'s Event` : ev.title);
                 return (
                   <div
                     key={ev.id}

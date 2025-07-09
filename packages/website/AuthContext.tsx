@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User,Group } from './types';
+import { User,Group } from './app/types';
 
 interface AuthContextType {
   user: User | null;

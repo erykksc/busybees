@@ -1,95 +1,98 @@
-// // hooks/useCreateGroup.js
-import { useState } from 'react';
+// import { useState } from 'react';
+// import { Dispatch, SetStateAction } from 'react';
+// import { User } from "~/types"; 
+// import { Group } from "~/types";
 
-// export default function useCreateGroup(user, setLocalGroups) {
-//   const [newGroupName, setNewGroupName] = useState('');
+// export default function useCreateGroup(
+//   user: User,
+//   localGroups: Group[],
+//   setLocalGroups: Dispatch<SetStateAction<Group[]>>
+// ) {
+//   const [name, setName] = useState('');
 //   const [nameError, setNameError] = useState('');
 //   const [isNameValid, setIsNameValid] = useState(false);
 //   const [makeEventsPublic, setMakeEventsPublic] = useState(false);
 
-//   const handleNameChange = (value) => {
-//     const trimmed = value.trim();
-//     setNewGroupName(value);
-//     if (trimmed.length === 0) {
-//       setIsNameValid(false);
-//       setNameError('Please enter a name for your shared calendar');
-//     } else {
-//       setIsNameValid(true);
-//       setNameError('');
-//     }
-//   };
-
-//   const handleInviteFriends = () => {
-//     const trimmed = newGroupName.trim();
-//     if (!trimmed) {
-//       setIsNameValid(false);
-//       setNameError('Please enter a name for your shared calendar');
+//   const handleCreateGroup = () => {
+//     if (!name.trim()) {
+//       setNameError('Name is required.');
 //       return;
 //     }
 
 //     const newGroup = {
 //       id: Date.now().toString(),
-//       name: trimmed,
+//       name,
+//       public: makeEventsPublic,
 //       members: [user.email],
-//       makeEventsPublic: makeEventsPublic,
 //     };
 
-//     setLocalGroups(prev => [...prev, newGroup]);
-//     const savedGroups = JSON.parse(localStorage.getItem("groups")) || [];
-//     localStorage.setItem("groups", JSON.stringify([...savedGroups, newGroup]));
-
-//     const inviteLink = `${window.location.origin}/invite/${newGroup.id}`;
-//     navigator.clipboard.writeText(inviteLink).then(() => {
-//       alert(`Invite link copied: ${inviteLink}`);
-//     });
-
-//     setNewGroupName('');
+//     const updatedGroups = [...localGroups, newGroup];
+//     setLocalGroups(updatedGroups);
+//     localStorage.setItem('groups', JSON.stringify(updatedGroups));
+//     // ✅ Do NOT toggle modal state here! Let parent do that.
 //   };
 
 //   return {
-//     newGroupName,
+//     name,
+//     setName,
 //     nameError,
 //     isNameValid,
 //     makeEventsPublic,
 //     setMakeEventsPublic,
-//     handleNameChange,
-//     handleInviteFriends
+//     handleCreateGroup,
 //   };
 // }
 
-
-// useCreateGroup.js
-import { Dispatch, SetStateAction } from 'react';
-import { User } from '../types'; 
-import { Group } from '../types';
+import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useAuth } from "react-oidc-context";
+import type { User, Group } from "~/types";
 
 export default function useCreateGroup(
   user: User,
   localGroups: Group[],
   setLocalGroups: Dispatch<SetStateAction<Group[]>>
 ) {
-  const [name, setName] = useState('');
-  const [nameError, setNameError] = useState('');
+  const [name, setName] = useState("");
+  const [nameError, setNameError] = useState("");
   const [isNameValid, setIsNameValid] = useState(false);
   const [makeEventsPublic, setMakeEventsPublic] = useState(false);
 
-  const handleCreateGroup = () => {
+  const handleCreateGroup = async () => {
     if (!name.trim()) {
-      setNameError('Name is required.');
+      setNameError("Name is required.");
       return;
     }
 
-    const newGroup = {
-      id: Date.now().toString(),
-      name,
-      public: makeEventsPublic,
-      members: [user.email],
-    };
+     const auth = useAuth(); 
 
-    const updatedGroups = [...localGroups, newGroup];
-    setLocalGroups(updatedGroups);
-    localStorage.setItem('groups', JSON.stringify(updatedGroups));
-    // ✅ Do NOT toggle modal state here! Let parent do that.
+    try {
+      const response = await fetch("/api/groups", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.user?.access_token}`,
+        },
+        body: JSON.stringify({
+          name,
+          makeEventsPublic,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create group");
+      }
+
+      const newGroup: Group = await response.json();
+
+      const updatedGroups = [...localGroups, newGroup];
+      setLocalGroups(updatedGroups);
+      localStorage.setItem("groups", JSON.stringify(updatedGroups));
+
+    } catch (error) {
+      console.error("Error creating group:", error);
+      setNameError("Failed to create group. Try again.");
+    }
   };
 
   return {

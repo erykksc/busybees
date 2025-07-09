@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
+import { useAuth } from "react-oidc-context";
 
 interface ProfileSettingsProps {
   addedCalendars: string[];
@@ -12,9 +13,33 @@ interface ProfileSettingsProps {
 export default function ProfileSettings({ addedCalendars, onRemoveCalendar, onAddCalendar, onClose }: ProfileSettingsProps) {
   const [pendingRemove, setPendingRemove] = useState<string | null>(null);
   const navigate = useNavigate(); 
+  const auth = useAuth();
+  const handleAddGoogleCalendar = async () => {
+    try {
+      const response = await fetch(`/api/oauth/google/start`, {
+        headers: {
+          Authorization: `Bearer ${auth.user?.access_token}`,
+        },
+      });
+
+      console.log("Response from OAuth start:", response);
+
+      if (response.ok) {
+        console.log("OAuth flow started successfully");
+        const data = await response.json();
+        if (data.redirectUrl) {
+          window.location.href = data.redirectUrl;
+        } else {
+          console.error("No redirect URL returned from the server");
+        }
+      }
+    } catch (error) {
+      console.error("Error starting OAuth flow:", error);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex justify-center items-center z-50">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 space-y-6 font-cute text-gray-800 relative">
 
         {/* Close */}
@@ -52,7 +77,11 @@ export default function ProfileSettings({ addedCalendars, onRemoveCalendar, onAd
         <div>
           <h3 className="text-lg font-semibold mb-2">Add New Calendar</h3>
           <div className="flex flex-col gap-2">
-            <button onClick={() => onAddCalendar('Google')} className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full shadow hover:bg-blue-200 transition-all">
+            <button onClick={async () => {
+              await handleAddGoogleCalendar();
+              onAddCalendar('Google');
+            }}
+            className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full shadow hover:bg-blue-200 transition-all">
               + Add Google Calendar
             </button>
             <button onClick={() => onAddCalendar('Microsoft')} className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full shadow hover:bg-blue-200 transition-all">

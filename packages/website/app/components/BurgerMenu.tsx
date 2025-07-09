@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Group } from "../types";
-import { OnRemoveGroup } from "../types";
+import type { Group } from "~/types";
 
 interface BurgerMenuProps {
   localGroups: Group[];
@@ -85,7 +84,7 @@ export default function BurgerMenu({
 
       {/* Confirmation Modal */}
        {pendingRemove && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm font-cute text-gray-800">
             <h3 className="text-lg mb-4 text-center">
                 Are you sure you want to leave <br />
