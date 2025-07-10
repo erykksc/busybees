@@ -2,10 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { UserProfile, addUserProfile } from "@busybees/core";
-import {
-  APIGatewayProxyResultV2,
-  PostConfirmationTriggerEvent,
-} from "aws-lambda";
+import { PostConfirmationTriggerEvent } from "aws-lambda";
 
 const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const logger = new Logger({
