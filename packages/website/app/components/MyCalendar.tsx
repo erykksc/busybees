@@ -3,11 +3,11 @@ import dayjs from "dayjs";
 import clsx from "clsx";
 import CreateEventModal from "./CreateEventModal";
 import isBetween from "dayjs/plugin/isBetween";
-import type { Event, User } from "~/types";
+import type { User } from "~/types";
+import type { CalendarEventDto } from "@busybees/core";
 import { useAuth } from "react-oidc-context";
 dayjs.extend(isBetween);
 const getDaysInMonth = (year: number, month: number): (number | null)[] => {
-  const days = [];
   const date = dayjs(`${year}-${month + 1}-01`);
 
   let startDay = date.day();
@@ -29,7 +29,7 @@ const MyCalendar = () => {
   const [eventEnd, setEventEnd] = useState("");
   const [repeatType, setRepeatType] = useState("none");
   const [rangeEndDate, setRangeEndDate] = useState("");
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<CalendarEventDto[]>([]);
 
   const [viewDate, setViewDate] = useState(dayjs());
 
@@ -48,7 +48,7 @@ const MyCalendar = () => {
 
       try {
         const response = await fetch(
-          `/api/user/freebusy?timeMin=${timeMin}&timeMax=${timeMax}`,
+          `/api/user/events?timeMin=${timeMin}&timeMax=${timeMax}`,
           {
             headers: {
               Authorization: `Bearer ${auth.user.access_token}`,
@@ -71,7 +71,7 @@ const MyCalendar = () => {
     fetchEvents();
   }, [auth.user, viewDate]);
 
-  const eventsOnDay = (day: number): Event[] => {
+  const eventsOnDay = (day: number): CalendarEventDto[] => {
     if (!day) return [];
     const currentDate = viewDate.date(day).startOf("day");
 
@@ -101,7 +101,7 @@ const MyCalendar = () => {
   };
 
   const handleSaveEvent = async () => {
-    const eventsToCreate: Event[] = [];
+    const eventsToCreate: CalendarEventDto[] = [];
 
     const startDate = dayjs(eventDate);
     const endDate = rangeEndDate ? dayjs(rangeEndDate) : startDate;

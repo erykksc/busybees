@@ -5,15 +5,6 @@ export interface Group {
   makeEventsPublic?: boolean;
 }
 
-export interface Event {
-  id: string;
-  title: string;
-  start: string;
-  end: string;
-  userId: string;
-  allDay: boolean;
-}
-
 export interface User {
   id: string;
   name?: string;
@@ -21,15 +12,6 @@ export interface User {
   showTitles: boolean;
   color: string;
   password: string;
-}
-
-export interface EventType {
-  id: string;
-  title: string;
-  start: string;
-  end: string;
-  userId: string;
-  allDay?: boolean;
 }
 
 export interface CreateEventModalProps {

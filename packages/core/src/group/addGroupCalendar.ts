@@ -5,17 +5,23 @@ import {
   TransactWriteCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import type { GroupCalendar } from "./groupCalendar";
+import { v4 as uuidv4 } from "uuid";
 
 export async function addGroupCalendar(
   client: DynamoDBDocumentClient,
-  groupCalendar: GroupCalendar,
+  args: { groupId: string; ownerAuthSub: string },
 ): Promise<TransactWriteCommandOutput> {
+  const { groupId, ownerAuthSub } = args;
+
+  const groupCalendar: GroupCalendar = {
+    groupId: groupId,
+    owner: ownerAuthSub,
+    inviteCode: uuidv4(),
+    members: new Set([ownerAuthSub]),
+  };
+
   if (groupCalendar.groupId.length === 0) {
     throw new Error("groupId is required");
-  }
-
-  if (groupCalendar.name.length === 0) {
-    throw new Error("name is required");
   }
 
   if (groupCalendar.owner.length === 0) {
