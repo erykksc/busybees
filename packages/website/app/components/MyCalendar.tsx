@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 import clsx from "clsx";
 import CreateEventModal from "./CreateEventModal";
 import isBetween from "dayjs/plugin/isBetween";
-import type { User } from "~/types";
 import type { CalendarEventDto } from "@busybees/core";
 import { useAuth } from "react-oidc-context";
 dayjs.extend(isBetween);
@@ -41,6 +40,7 @@ const MyCalendar = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
+      if (auth.isLoading) return;
       if (!auth.user) return;
 
       const timeMin = viewDate.startOf("month").toISOString();
@@ -62,14 +62,14 @@ const MyCalendar = () => {
         }
 
         const data = await response.json();
-        setEvents(data);
+        setEvents(data.events);
       } catch (err) {
         console.error("Error fetching events:", err);
       }
     };
 
     fetchEvents();
-  }, [auth.user, viewDate]);
+  }, [auth.user, auth.isLoading, viewDate]);
 
   const eventsOnDay = (day: number): CalendarEventDto[] => {
     if (!day) return [];

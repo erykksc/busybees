@@ -128,10 +128,6 @@ sst secret set GoogleRedirectUri "https://your-api-domain/api/oauth/google/callb
    - Stores calendar connection in DynamoDB users table
    - Redirects user back to `/calendar` page
 
-3. **View Connections** (`/api/user/calendars`)
-   - Authenticated endpoint returns user's connected calendars (without sensitive tokens)
-   - Frontend displays connection details on `/calendar` page
-
 ### Security Features
 
 - OAuth state parameter validates user identity across the flow
@@ -150,6 +146,8 @@ sst secret set GoogleRedirectUri "https://your-api-domain/api/oauth/google/callb
 
 - `GET /api/user/profile` - Get profile of the authenticated in user (settings, calendar integrations). Returns `UserProfileDto from packages/core`
 <!-- - `POST /api/user/profile` - Update profile of the authenticated user (settings, calendar integrations). For now there are no customization options. -->
+- `GET /api/user/events?timeMin&timeMax` - Fetch busy statuses from all calendars of the authenticated user `timeMin` to `timeMax` date-times,
+  and transforms them into event types (done as prototyping compatibility measure between frontend and backend)
 - `GET /api/user/freebusy?timeMin&timeMax` - Fetch busy statuses from all calendars of the authenticated user `timeMin` to `timeMax` date-times
 - `POST /api/user/events` - Update events of the authenticated user. **Not Implemented, plan for the future**
 

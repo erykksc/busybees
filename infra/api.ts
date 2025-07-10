@@ -72,6 +72,11 @@ apiGateway.route(
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
 apiGateway.route(
+  "GET /api/user/events",
+  "packages/functions/src/api/user/events.GET.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+apiGateway.route(
   "GET /api/user/freebusy",
   "packages/functions/src/api/user/freebusy.GET.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
