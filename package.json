@@ -6,6 +6,7 @@
   ],
   "scripts": {
     "dev": "sst dev",
+    "clean": "sst remove",
     "format": "prettier --write .",
     "get-id-token": "npx --workspace ./packages/scripts sst shell -- tsx src/get-id-token.ts",
     "ensure-user-exists": "npx --workspace ./packages/scripts sst shell -- tsx src/ensure-user-exists.ts",

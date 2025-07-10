@@ -4,7 +4,6 @@ import {
   PutCommand,
   PutCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
-import type { UserProfile } from "./userProfile";
 
 // TODO: put user profile entry in users table
 export async function addUserProfile(
@@ -13,14 +12,17 @@ export async function addUserProfile(
     authSub: string;
   },
 ): Promise<PutCommandOutput> {
-  if (newUserProfileVals.authSub.length === 0) {
+  const { authSub } = newUserProfileVals;
+  if (authSub.length === 0) {
     throw new Error("authSub is required");
   }
 
   const result = await client.send(
     new PutCommand({
       TableName: Resource.UserProfilesTable.name,
-      Item: newUserProfileVals,
+      Item: {
+        authSub,
+      },
       ConditionExpression: "attribute_not_exists(authSub)",
     }),
   );

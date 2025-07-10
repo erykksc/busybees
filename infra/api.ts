@@ -13,7 +13,8 @@ export const apiGateway = new sst.aws.ApiGatewayV2("MyApi", {
   //         }),
   //       },
   link: [
-    db.usersTable,
+    db.userProfilesTable,
+    db.groupCalendarsTable,
     secrets.googleClientId,
     secrets.googleClientSecret,
     secrets.googleRedirectUri,

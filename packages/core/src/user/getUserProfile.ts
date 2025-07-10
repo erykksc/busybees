@@ -2,12 +2,13 @@ import { UserProfile } from "./userProfile";
 import { Resource } from "sst";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 
-// TODO: retrieve user profile from the users table
+// This function retrieves a user profile from the DynamoDB UserProfiles table
+// return null if the user profile does not exist
 export async function getUserProfile(
   client: DynamoDBDocumentClient,
   authSub: string,
   options?: { consistentRead?: boolean },
-): Promise<UserProfile> {
+): Promise<UserProfile | null> {
   const { consistentRead = false } = options ?? {};
 
   const result = await client.send(
@@ -19,7 +20,7 @@ export async function getUserProfile(
   );
 
   if (!result.Item) {
-    throw new Error("User profile not found");
+    return null;
   }
 
   return result.Item as UserProfile;

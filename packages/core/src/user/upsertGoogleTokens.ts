@@ -6,13 +6,18 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { Auth } from "googleapis";
 import { UserProfile } from "./userProfile";
+import { Logger } from "@aws-lambda-powertools/logger";
 
 export async function upsertGoogleCalendarInUserProfile(
   client: DynamoDBDocumentClient,
-  authSub: string,
-  primaryEmail: string,
-  creds: Auth.Credentials,
+  args: {
+    authSub: string;
+    primaryEmail: string;
+    creds: Auth.Credentials;
+    logger?: Logger;
+  },
 ): Promise<UpdateCommandOutput> {
+  const { authSub, primaryEmail, creds, logger } = args;
   if (!authSub || authSub.length === 0) {
     throw new Error("authSub is required");
   }
@@ -32,6 +37,9 @@ export async function upsertGoogleCalendarInUserProfile(
       },
     }),
   );
+  logger?.info("Google calendar tokens upserted", {
+    authSub,
+  });
 
   return result;
 }

@@ -8,10 +8,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { upsertGoogleCalendarInUserProfile } from "@busybees/core";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
-const client = new DynamoDBClient({
-  region: Resource.AwsRegion.value,
-});
-const docClient = DynamoDBDocumentClient.from(client);
+const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const logger = new Logger({
   serviceName: "sst-app",
 });
@@ -154,12 +151,11 @@ export const main = async (
       profile,
     });
 
-    const results = await upsertGoogleCalendarInUserProfile(
-      docClient,
-      stateData.authSub,
+    const results = await upsertGoogleCalendarInUserProfile(docClient, {
+      authSub: stateData.authSub,
       primaryEmail,
-      tokens,
-    );
+      creds: tokens,
+    });
     logger.info("Google Calendar connection upserted", { results });
 
     // Redirect to calendar page

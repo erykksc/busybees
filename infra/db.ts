@@ -18,4 +18,4 @@ export const groupCalendarsTable = new sst.aws.Dynamo("GroupCalendarsTable", {
   },
 });
 
-export default { usersTable: userProfilesTable };
+export default { userProfilesTable, groupCalendarsTable };

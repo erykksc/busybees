@@ -9,4 +9,3 @@ export default defineConfig({
     hookTimeout: 60000, // 60 seconds for setup/teardown
   },
 });
-

@@ -5,15 +5,11 @@ import {
   AdminGetUserCommand,
   AdminCreateUserCommand,
   AdminSetUserPasswordCommand,
-  AdminConfirmSignUpCommand,
   AdminInitiateAuthCommand,
-  ChangePasswordCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { addUserProfile } from "../user/addUserProfile";
-import {
-  DynamoDBDocument,
-  DynamoDBDocumentClient,
-} from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import jwt from "jsonwebtoken";
 
 const client = new CognitoIdentityProviderClient({
   region: Resource.AwsRegion.value,
@@ -88,7 +84,8 @@ export async function ensureUserExistsAndLogin(
     );
   }
 
-  let token = "";
+  let accessToken = "";
+  let authSub = "";
 
   try {
     console.error(`Attempting login for ${username}...`);
@@ -104,12 +101,21 @@ export async function ensureUserExistsAndLogin(
         },
       }),
     );
-    const idToken = response.AuthenticationResult?.IdToken;
+    accessToken = response.AuthenticationResult?.AccessToken ?? "";
+    if (!accessToken) {
+      throw new Error("No access token received from authentication.");
+    }
+
+    const idToken = response.AuthenticationResult?.IdToken ?? "";
     if (!idToken) {
       throw new Error("No ID token received from authentication.");
     }
 
-    token = idToken;
+    const decoded = jwt.decode(idToken);
+    authSub = decoded?.sub as string;
+    if (!authSub) {
+      throw new Error("No authSub found in ID token.");
+    }
   } catch (error: any) {
     return {
       success: false,
@@ -130,7 +136,7 @@ export async function ensureUserExistsAndLogin(
     const docClient = DynamoDBDocumentClient.from(dbClient);
 
     const addProfileResponse = await addUserProfile(docClient, {
-      authSub: token,
+      authSub,
     });
     console.error(
       "User profile added:",
@@ -143,7 +149,8 @@ export async function ensureUserExistsAndLogin(
   const result = {
     success: true,
     message: `User ${username} ensured and logged in.`,
-    idToken: token,
+    accessToken,
+    authSub,
   };
 
   return result;

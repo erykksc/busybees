@@ -14,10 +14,12 @@
   },
   "dependencies": {
     "@aws-sdk/lib-dynamodb": "^3.840.0",
+    "jsonwebtoken": "^9.0.2",
     "sst": "*",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "vitest": "^2"
   }
 }

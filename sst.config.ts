@@ -15,7 +15,9 @@ export default $config({
   },
   async run() {
     const auth = await import("./infra/auth");
-    await import("./infra/db");
+    const { userProfilesTable, groupCalendarsTable } = await import(
+      "./infra/db"
+    );
     await import("./infra/secrets");
     await import("./infra/api");
     await import("./infra/dev");
@@ -32,6 +34,8 @@ export default $config({
       UserPoolId: auth.userPool.id,
       UserPoolClientId: auth.userPoolClient.id,
       AwsRegion: awsRegion.properties.value,
+      UserProfileTable: userProfilesTable.name,
+      GroupCalendarTable: groupCalendarsTable.name,
     };
   },
 });
