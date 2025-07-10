@@ -28,9 +28,7 @@ export default function ProfileMenu({ show, onToggle }: ProfileMenuProps) {
           className="w-10 h-10 bg-[#fbde89] text-yellow-900 rounded-full flex items-center justify-center font-cute text-lg shadow cursor-pointer"
           onClick={onToggle}
         >
-          {/* NOTE: you can't get a user like that */}
-          {/* {auth.user?.email?.[0].toUpperCase()} */}
-          {auth.user.profile.email}
+          {auth.user.profile.email?.[0].toUpperCase()}
         </div>
       )}
 
