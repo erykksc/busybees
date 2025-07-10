@@ -19,4 +19,3 @@ export async function createAndGetUserToken(user: {
 
   return result.idToken;
 }
-

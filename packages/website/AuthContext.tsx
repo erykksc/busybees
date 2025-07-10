@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { User,Group } from './app/types';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { useNavigate } from "react-router-dom";
+import { User, Group } from "./app/types";
 
 interface AuthContextType {
   user: User | null;
@@ -12,7 +18,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -38,13 +43,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const newUser = { id: crypto.randomUUID(),
-                      email,
-                      name: email.split('@')[0],
-                      showTitles: true,
-                      color: '#'+Math.floor(Math.random()*16777215).toString(16),
-                      password
-                    };
+    const newUser = {
+      id: crypto.randomUUID(),
+      email,
+      name: email.split("@")[0],
+      showTitles: true,
+      color: "#" + Math.floor(Math.random() * 16777215).toString(16),
+      password,
+    };
     localStorage.setItem("users", JSON.stringify([...existingUsers, newUser]));
     localStorage.setItem("user", JSON.stringify(newUser));
     setUser(newUser);
@@ -55,7 +61,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = ({ email, password }: LoginCredentials) => {
     const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
-    const matched = allUsers.find((u: User) => u.email === email && u.password === password);
+    const matched = allUsers.find(
+      (u: User) => u.email === email && u.password === password,
+    );
 
     if (matched) {
       setUser(matched);
@@ -73,8 +81,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const joinGroup = (id: string) => {
-    const savedGroups = JSON.parse(localStorage.getItem("groups") || "[]") as Group[];
-    const index = savedGroups.findIndex(g => g.id === id);
+    const savedGroups = JSON.parse(
+      localStorage.getItem("groups") || "[]",
+    ) as Group[];
+    const index = savedGroups.findIndex((g) => g.id === id);
     if (index === -1 || !user) return;
 
     const group = savedGroups[index];
@@ -88,7 +98,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, groups, register, login, logout, joinGroup }}>
+    <AuthContext.Provider
+      value={{ user, groups, register, login, logout, joinGroup }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,6 @@
 // import { useState } from 'react';
 // import { Dispatch, SetStateAction } from 'react';
-// import { User } from "~/types"; 
+// import { User } from "~/types";
 // import { Group } from "~/types";
 
 // export default function useCreateGroup(
@@ -51,7 +51,7 @@ import type { User, Group } from "~/types";
 export default function useCreateGroup(
   user: User,
   localGroups: Group[],
-  setLocalGroups: Dispatch<SetStateAction<Group[]>>
+  setLocalGroups: Dispatch<SetStateAction<Group[]>>,
 ) {
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState("");
@@ -64,7 +64,7 @@ export default function useCreateGroup(
       return;
     }
 
-     const auth = useAuth(); 
+    const auth = useAuth();
 
     try {
       const response = await fetch("/api/groups", {
@@ -88,7 +88,6 @@ export default function useCreateGroup(
       const updatedGroups = [...localGroups, newGroup];
       setLocalGroups(updatedGroups);
       localStorage.setItem("groups", JSON.stringify(updatedGroups));
-
     } catch (error) {
       console.error("Error creating group:", error);
       setNameError("Failed to create group. Try again.");

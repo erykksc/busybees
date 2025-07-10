@@ -9,10 +9,10 @@ export default authGuard(CalendarPage);
 
 function CalendarPage() {
   const auth = useAuth();
-  
-    if (auth.isLoading) {
-      return <div>Loading...</div>;
-    }
+
+  if (auth.isLoading) {
+    return <div>Loading...</div>;
+  }
 
   const { activeTab, user, makeEventsPublic, setMakeEventsPublic } =
     useOutletContext<CalendarLayoutContext>();

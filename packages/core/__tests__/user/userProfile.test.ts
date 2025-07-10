@@ -31,7 +31,9 @@ describe("UserProfile Type Tests", () => {
     expect(userProfile.authSub).toBe("test-auth-sub-123");
     expect(userProfile.groups).toEqual(["group1"]);
     expect(userProfile["google-test@example.com"]).toBe(googleCreds);
-    expect(userProfile["google-test@example.com"].access_token).toBe("access-token-123");
+    expect(userProfile["google-test@example.com"].access_token).toBe(
+      "access-token-123",
+    );
   });
 
   it("should create a UserProfile with multiple Google accounts", () => {
@@ -74,8 +76,12 @@ describe("UserProfile Type Tests", () => {
 
     expect(userProfile.authSub).toBe("test-auth-sub-123");
     expect(userProfile.groups).toEqual(["group1"]);
-    expect(userProfile["icsfeed-vacation"]).toBe("https://example.com/vacation.ics");
-    expect(userProfile["icsfeed-holidays"]).toBe("https://example.com/holidays.ics");
+    expect(userProfile["icsfeed-vacation"]).toBe(
+      "https://example.com/vacation.ics",
+    );
+    expect(userProfile["icsfeed-holidays"]).toBe(
+      "https://example.com/holidays.ics",
+    );
   });
 
   it("should create a UserProfile with mixed integrations", () => {
@@ -98,8 +104,12 @@ describe("UserProfile Type Tests", () => {
     expect(userProfile.authSub).toBe("test-auth-sub-123");
     expect(userProfile.groups).toEqual(["group1", "group2", "group3"]);
     expect(userProfile["google-work@example.com"]).toBe(googleCreds);
-    expect(userProfile["icsfeed-vacation"]).toBe("https://example.com/vacation.ics");
-    expect(userProfile["microsoft-outlook@example.com"]).toEqual({ some: "microsoft-creds" });
+    expect(userProfile["icsfeed-vacation"]).toBe(
+      "https://example.com/vacation.ics",
+    );
+    expect(userProfile["microsoft-outlook@example.com"]).toEqual({
+      some: "microsoft-creds",
+    });
   });
 
   it("should handle empty groups array", () => {
@@ -116,7 +126,8 @@ describe("UserProfile Type Tests", () => {
     const comprehensiveCreds: Auth.Credentials = {
       access_token: "access-token-123",
       refresh_token: "refresh-token-123",
-      scope: "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email profile",
+      scope:
+        "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email profile",
       token_type: "Bearer",
       expiry_date: 1234567890,
       id_token: "id-token-123",
@@ -128,10 +139,18 @@ describe("UserProfile Type Tests", () => {
       "google-comprehensive@example.com": comprehensiveCreds,
     };
 
-    expect(userProfile["google-comprehensive@example.com"].access_token).toBe("access-token-123");
-    expect(userProfile["google-comprehensive@example.com"].refresh_token).toBe("refresh-token-123");
-    expect(userProfile["google-comprehensive@example.com"].id_token).toBe("id-token-123");
-    expect(userProfile["google-comprehensive@example.com"].expiry_date).toBe(1234567890);
+    expect(userProfile["google-comprehensive@example.com"].access_token).toBe(
+      "access-token-123",
+    );
+    expect(userProfile["google-comprehensive@example.com"].refresh_token).toBe(
+      "refresh-token-123",
+    );
+    expect(userProfile["google-comprehensive@example.com"].id_token).toBe(
+      "id-token-123",
+    );
+    expect(userProfile["google-comprehensive@example.com"].expiry_date).toBe(
+      1234567890,
+    );
   });
 
   it("should handle complex email addresses in field names", () => {
@@ -151,7 +170,9 @@ describe("UserProfile Type Tests", () => {
     };
 
     expect(userProfile["google-user.name+tag@example.com"]).toBe(googleCreds);
-    expect(userProfile["icsfeed-company-holidays"]).toBe("https://company.com/holidays.ics");
+    expect(userProfile["icsfeed-company-holidays"]).toBe(
+      "https://company.com/holidays.ics",
+    );
   });
 
   it("should support type inference for dynamic keys", () => {

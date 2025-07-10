@@ -40,7 +40,7 @@
 // }, [user, id, navigate]);
 
 // const auth = useAuth();
-  
+
 //     if (auth.isLoading) {
 //       return <div>Loading...</div>;
 //     }
@@ -52,9 +52,9 @@
 //             Authorization: `Bearer ${auth.user?.access_token}`,
 //           },
 //         });
-  
+
 //         console.log("Response from OAuth start:", response);
-  
+
 //         if (response.ok) {
 //           console.log("OAuth flow started successfully");
 //           const data = await response.json();
@@ -75,7 +75,6 @@
 //     </div>
 //   );
 // }
-
 
 import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
@@ -121,7 +120,7 @@ function Invite() {
         }
 
         const isAlreadyMember = group.members.some(
-          (member: any) => member.email === userEmail
+          (member: any) => member.email === userEmail,
         );
 
         if (isAlreadyMember) {

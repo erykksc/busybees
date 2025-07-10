@@ -9,7 +9,7 @@ export default function CreateGroupModal({
   makeEventsPublic,
   toggleMakeEventsPublic,
   onInviteFriends,
-  onClose
+  onClose,
 }: CreateGroupModalProps) {
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex justify-center items-center z-50">
@@ -43,8 +43,8 @@ export default function CreateGroupModal({
             disabled={!isNameValid}
             className={`${
               isNameValid
-                ? 'bg-green-200 text-green-800 px-4 py-2 rounded-full shadow-md hover:bg-green-300 transition-all'
-                : 'bg-gray-300 text-gray-600 cursor-not-allowed px-4 py-2 rounded-full shadow-md'
+                ? "bg-green-200 text-green-800 px-4 py-2 rounded-full shadow-md hover:bg-green-300 transition-all"
+                : "bg-gray-300 text-gray-600 cursor-not-allowed px-4 py-2 rounded-full shadow-md"
             }`}
           >
             Create Calendar & Copy Invite Link
@@ -60,4 +60,3 @@ export default function CreateGroupModal({
     </div>
   );
 }
-

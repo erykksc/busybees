@@ -347,4 +347,3 @@ describe("removeMemberFromGroupCalendar Integration Tests", () => {
     ).rejects.toThrow("Group calendar not found");
   });
 });
-

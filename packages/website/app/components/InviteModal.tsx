@@ -36,7 +36,10 @@ export default function InviteModal({
 
         <ul className="mb-4">
           {members.map((member) => (
-            <li key={member.id} className="flex justify-between items-center mb-2">
+            <li
+              key={member.id}
+              className="flex justify-between items-center mb-2"
+            >
               <span>{member.email}</span>
               <button
                 onClick={() => setPendingRemove(member.id)}
@@ -50,7 +53,9 @@ export default function InviteModal({
 
         {/* Copy Invite Link */}
         <div className="mt-6">
-          <label className="block text-sm font-semibold mb-1">Invite Link</label>
+          <label className="block text-sm font-semibold mb-1">
+            Invite Link
+          </label>
           <div className="flex">
             <input
               type="text"

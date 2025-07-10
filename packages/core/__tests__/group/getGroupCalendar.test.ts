@@ -125,4 +125,3 @@ describe("getGroupCalendar Integration Tests", () => {
     ).resolves.not.toThrow();
   });
 });
-

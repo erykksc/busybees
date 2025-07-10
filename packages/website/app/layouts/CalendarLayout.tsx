@@ -7,8 +7,7 @@ import BurgerMenu from "../components/BurgerMenu";
 import ProfileSettings from "../routes/settings";
 import { removeUserFromGroup } from "../hooks/group";
 import type { Group } from "../types";
-import type { GroupCalendarDto } from "@busybees/core";
-
+import type { GroupCalendarDto, UserProfileDto } from "@busybees/core";
 
 interface CalendarLayoutProps {
   onProfile: () => void;
@@ -36,8 +35,6 @@ export default function CalendarLayout({
   const [isNameValid, setIsNameValid] = useState(false);
   const [nameError, setNameError] = useState<string>("");
   const [makeEventsPublic, setMakeEventsPublic] = useState(false);
-
-  
 
   const handleAddGoogleCalendar = async () => {
     try {
@@ -87,8 +84,8 @@ export default function CalendarLayout({
           return;
         }
 
-        const data = await response.json();
-        if (data.groups) {
+        const data: UserProfileDto = await response.json();
+        if (data.groupsNames) {
           setLocalGroups(data.groups);
         }
       } catch (err) {
@@ -253,10 +250,10 @@ export default function CalendarLayout({
         <BurgerMenu
           activeTabId={activeTabId}
           //localGroups={localGroups}
-          localGroups={localGroups.map(g => ({
+          localGroups={localGroups.map((g) => ({
             id: g.groupId,
             name: g.name,
-            members: g.members
+            members: g.members,
           }))}
           onSelectCalendar={(calendar: any) => {
             if (calendar === "personal") {
@@ -274,7 +271,9 @@ export default function CalendarLayout({
             if (user && window.confirm(`Remove yourself from ${group.name}?`)) {
               try {
                 await removeUserFromGroup(group.id, user.id);
-                setLocalGroups((prev) => prev.filter((g) => g.groupId !== group.id));
+                setLocalGroups((prev) =>
+                  prev.filter((g) => g.groupId !== group.id),
+                );
               } catch (e) {
                 alert("Failed to leave the group.");
                 console.error(e);

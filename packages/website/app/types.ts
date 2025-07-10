@@ -17,10 +17,10 @@ export interface Event {
 export interface User {
   id: string;
   name?: string;
-  email: string,
+  email: string;
   showTitles: boolean;
   color: string;
-  password: string
+  password: string;
 }
 
 export interface EventType {
@@ -31,7 +31,6 @@ export interface EventType {
   userId: string;
   allDay?: boolean;
 }
-
 
 export interface CreateEventModalProps {
   show: boolean;
@@ -61,9 +60,7 @@ export interface CreateGroupModalProps {
   onClose: () => void;
 }
 
-export type ActiveTab =
-  | { type: 'personal' }
-  | { type: 'group'; group: Group };
+export type ActiveTab = { type: "personal" } | { type: "group"; group: Group };
 
 export interface CalendarLayoutContext {
   activeTab: ActiveTab;
@@ -73,4 +70,3 @@ export interface CalendarLayoutContext {
 }
 
 export type OnRemoveGroup = (groupId: string) => void;
-

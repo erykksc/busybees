@@ -58,8 +58,12 @@ describe("upsertGoogleCalendarInUserProfile Integration Tests", () => {
     // Verify the credentials were added
     const updatedProfile = await getUserProfile(client, testAuthSub);
     expect(updatedProfile["google-test@example.com"]).toBeDefined();
-    expect(updatedProfile["google-test@example.com"].access_token).toBe("access-token-123");
-    expect(updatedProfile["google-test@example.com"].refresh_token).toBe("refresh-token-123");
+    expect(updatedProfile["google-test@example.com"].access_token).toBe(
+      "access-token-123",
+    );
+    expect(updatedProfile["google-test@example.com"].refresh_token).toBe(
+      "refresh-token-123",
+    );
   });
 
   it("should successfully update existing Google credentials", async () => {
@@ -81,7 +85,8 @@ describe("upsertGoogleCalendarInUserProfile Integration Tests", () => {
     const newGoogleCreds: Auth.Credentials = {
       access_token: "new-access-token",
       refresh_token: "new-refresh-token",
-      scope: "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email",
+      scope:
+        "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email",
       token_type: "Bearer",
       expiry_date: 2222222222,
     };
@@ -100,9 +105,15 @@ describe("upsertGoogleCalendarInUserProfile Integration Tests", () => {
     // Verify the credentials were updated
     const updatedProfile = await getUserProfile(client, testAuthSub + "-2");
     expect(updatedProfile["google-test@example.com"]).toBeDefined();
-    expect(updatedProfile["google-test@example.com"].access_token).toBe("new-access-token");
-    expect(updatedProfile["google-test@example.com"].refresh_token).toBe("new-refresh-token");
-    expect(updatedProfile["google-test@example.com"].expiry_date).toBe(2222222222);
+    expect(updatedProfile["google-test@example.com"].access_token).toBe(
+      "new-access-token",
+    );
+    expect(updatedProfile["google-test@example.com"].refresh_token).toBe(
+      "new-refresh-token",
+    );
+    expect(updatedProfile["google-test@example.com"].expiry_date).toBe(
+      2222222222,
+    );
   });
 
   it("should successfully add multiple Google accounts", async () => {
@@ -149,9 +160,13 @@ describe("upsertGoogleCalendarInUserProfile Integration Tests", () => {
     // Verify both accounts were added
     const updatedProfile = await getUserProfile(client, testAuthSub + "-3");
     expect(updatedProfile["google-work@example.com"]).toBeDefined();
-    expect(updatedProfile["google-work@example.com"].access_token).toBe("work-access-token");
+    expect(updatedProfile["google-work@example.com"].access_token).toBe(
+      "work-access-token",
+    );
     expect(updatedProfile["google-personal@example.com"]).toBeDefined();
-    expect(updatedProfile["google-personal@example.com"].access_token).toBe("personal-access-token");
+    expect(updatedProfile["google-personal@example.com"].access_token).toBe(
+      "personal-access-token",
+    );
   });
 
   it("should throw error when authSub is empty", async () => {
@@ -164,7 +179,12 @@ describe("upsertGoogleCalendarInUserProfile Integration Tests", () => {
     };
 
     await expect(
-      upsertGoogleCalendarInUserProfile(client, "", "test@example.com", googleCreds),
+      upsertGoogleCalendarInUserProfile(
+        client,
+        "",
+        "test@example.com",
+        googleCreds,
+      ),
     ).rejects.toThrow("authSub is required");
   });
 
@@ -178,7 +198,12 @@ describe("upsertGoogleCalendarInUserProfile Integration Tests", () => {
     };
 
     await expect(
-      upsertGoogleCalendarInUserProfile(client, null as any, "test@example.com", googleCreds),
+      upsertGoogleCalendarInUserProfile(
+        client,
+        null as any,
+        "test@example.com",
+        googleCreds,
+      ),
     ).rejects.toThrow("authSub is required");
   });
 
@@ -192,7 +217,12 @@ describe("upsertGoogleCalendarInUserProfile Integration Tests", () => {
     };
 
     await expect(
-      upsertGoogleCalendarInUserProfile(client, undefined as any, "test@example.com", googleCreds),
+      upsertGoogleCalendarInUserProfile(
+        client,
+        undefined as any,
+        "test@example.com",
+        googleCreds,
+      ),
     ).rejects.toThrow("authSub is required");
   });
 
@@ -208,7 +238,8 @@ describe("upsertGoogleCalendarInUserProfile Integration Tests", () => {
     const comprehensiveCreds: Auth.Credentials = {
       access_token: "comprehensive-access-token",
       refresh_token: "comprehensive-refresh-token",
-      scope: "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email profile",
+      scope:
+        "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email profile",
       token_type: "Bearer",
       expiry_date: 1234567890,
       id_token: "id-token-123",
@@ -228,9 +259,15 @@ describe("upsertGoogleCalendarInUserProfile Integration Tests", () => {
     // Verify all credential fields were stored
     const updatedProfile = await getUserProfile(client, testAuthSub);
     expect(updatedProfile["google-comprehensive@example.com"]).toBeDefined();
-    expect(updatedProfile["google-comprehensive@example.com"].access_token).toBe("comprehensive-access-token");
-    expect(updatedProfile["google-comprehensive@example.com"].refresh_token).toBe("comprehensive-refresh-token");
-    expect(updatedProfile["google-comprehensive@example.com"].id_token).toBe("id-token-123");
+    expect(
+      updatedProfile["google-comprehensive@example.com"].access_token,
+    ).toBe("comprehensive-access-token");
+    expect(
+      updatedProfile["google-comprehensive@example.com"].refresh_token,
+    ).toBe("comprehensive-refresh-token");
+    expect(updatedProfile["google-comprehensive@example.com"].id_token).toBe(
+      "id-token-123",
+    );
   });
 
   it("should handle email addresses with special characters", async () => {
@@ -267,6 +304,8 @@ describe("upsertGoogleCalendarInUserProfile Integration Tests", () => {
     // Verify the credentials were added with the complex email
     const updatedProfile = await getUserProfile(client, testAuthSub);
     expect(updatedProfile[`google-${complexEmail}`]).toBeDefined();
-    expect(updatedProfile[`google-${complexEmail}`].access_token).toBe("access-token-123");
+    expect(updatedProfile[`google-${complexEmail}`].access_token).toBe(
+      "access-token-123",
+    );
   });
 });

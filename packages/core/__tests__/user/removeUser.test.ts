@@ -112,7 +112,9 @@ describe("removeUser Integration Tests", () => {
     expect(existingProfile).toBeDefined();
     expect(existingProfile["google-work@example.com"]).toBeDefined();
     expect(existingProfile["google-personal@example.com"]).toBeDefined();
-    expect(existingProfile["icsfeed-vacation"]).toBe("https://example.com/vacation.ics");
+    expect(existingProfile["icsfeed-vacation"]).toBe(
+      "https://example.com/vacation.ics",
+    );
 
     // Remove the user profile
     const result = await removeUser(client, testAuthSub + "-3");
@@ -127,9 +129,7 @@ describe("removeUser Integration Tests", () => {
   });
 
   it("should throw error when authSub is empty", async () => {
-    await expect(removeUser(client, "")).rejects.toThrow(
-      "authSub is required",
-    );
+    await expect(removeUser(client, "")).rejects.toThrow("authSub is required");
   });
 
   it("should throw error when authSub is null", async () => {

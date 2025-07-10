@@ -106,4 +106,3 @@ describe("addUserProfile Integration Tests", () => {
     await expect(addUserProfile(client, userProfile)).rejects.toThrow();
   });
 });
-
