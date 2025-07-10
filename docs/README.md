@@ -150,7 +150,7 @@ sst secret set GoogleRedirectUri "https://your-api-domain/api/oauth/google/callb
 
 - `GET /api/user/profile` - Get profile of the authenticated in user (settings, calendar integrations). Returns `UserProfileDto from packages/core`
 <!-- - `POST /api/user/profile` - Update profile of the authenticated user (settings, calendar integrations). For now there are no customization options. -->
-- `GET /api/user/events?from&until` - Fetch events from all calendars of the authenticated user `from` to `until` date-times
+- `GET /api/user/freebusy?timeMin&timeMax` - Fetch busy statuses from all calendars of the authenticated user `timeMin` to `timeMax` date-times
 - `POST /api/user/events` - Update events of the authenticated user. **Not Implemented, plan for the future**
 
 #### Group Endpoints
@@ -166,7 +166,7 @@ sst secret set GoogleRedirectUri "https://your-api-domain/api/oauth/google/callb
 - `DELETE /api/groups/:groupId` - Remove
 - `GET /api/groups/:groupId/profile` - Fetch profile of the group e.g., settings, members, invite link
 - `POST /api/groups/:groupId/profile` - Update profile of the group e.g., change settings or kick somebody out
-- `GET /api/groups/:groupId/events?from&until` - Fetch events from all calendars of all group members `from` to `until` specified date-times
+- `GET /api/groups/:groupId/freebusy?timeMin&timeMax` - Fetch events from all calendars of all group members `from` to `until` specified date-times
 - `POST /api/groups/:groupId/events` - Create/Update/Delete events in the group calendar
 
 #### Test Endpoints

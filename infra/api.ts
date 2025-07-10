@@ -72,13 +72,8 @@ apiGateway.route(
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
 apiGateway.route(
-  "GET /api/user/events",
-  "packages/functions/src/api/user/events.GET.main",
-  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
-);
-apiGateway.route(
-  "POST /api/user/events",
-  "packages/functions/src/api/user/events.POST.main",
+  "GET /api/user/freebusy",
+  "packages/functions/src/api/user/freebusy.GET.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
 
@@ -88,21 +83,25 @@ apiGateway.route(
   "packages/functions/src/api/groups.POST.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
+
 apiGateway.route(
   "GET /api/groups/{groupId}/profile",
   "packages/functions/src/api/groups/[groupId]/profile.GET.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
+
 apiGateway.route(
   "POST /api/groups/{groupId}/profile",
   "packages/functions/src/api/groups/[groupId]/profile.POST.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
+
 apiGateway.route(
-  "GET /api/groups/{groupId}/events",
-  "packages/functions/src/api/groups/[groupId]/events.GET.main",
+  "GET /api/groups/{groupId}/freebusy",
+  "packages/functions/src/api/groups/[groupId]/freebusy.GET.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
+
 apiGateway.route(
   "POST /api/groups/{groupId}/events",
   "packages/functions/src/api/groups/[groupId]/events.POST.main",

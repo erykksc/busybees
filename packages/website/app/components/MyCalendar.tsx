@@ -43,12 +43,12 @@ const MyCalendar = () => {
     const fetchEvents = async () => {
       if (!auth.user) return;
 
-      const from = viewDate.startOf("month").toISOString();
-      const until = viewDate.endOf("month").toISOString();
+      const timeMin = viewDate.startOf("month").toISOString();
+      const timeMax = viewDate.endOf("month").toISOString();
 
       try {
         const response = await fetch(
-          `/api/user/events?from=${from}&until=${until}`,
+          `/api/user/freebusy?timeMin=${timeMin}&timeMax=${timeMax}`,
           {
             headers: {
               Authorization: `Bearer ${auth.user.access_token}`,

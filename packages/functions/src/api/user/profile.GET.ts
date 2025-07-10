@@ -22,7 +22,9 @@ export const main = async (
       throw new Error("authSub is not a valid string");
     }
 
-    const userProfile = await getUserProfile(client, authSub);
+    const userProfile = await getUserProfile(client, {
+      authSub,
+    });
     logger.info("User profile retrieved", { userProfile });
 
     // check if userProfile found

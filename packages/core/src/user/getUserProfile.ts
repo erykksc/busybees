@@ -6,10 +6,12 @@ import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 // return null if the user profile does not exist
 export async function getUserProfile(
   client: DynamoDBDocumentClient,
-  authSub: string,
-  options?: { consistentRead?: boolean },
+  args: {
+    authSub: string;
+    consistentRead?: boolean;
+  },
 ): Promise<UserProfile | null> {
-  const { consistentRead = false } = options ?? {};
+  const { authSub, consistentRead = false } = args;
 
   const result = await client.send(
     new GetCommand({
