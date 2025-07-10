@@ -7,7 +7,7 @@ export interface GroupCalendar {
 
 export interface GroupCalendarDto {
   inviteUrl: string; // URL to join the group using the invite code
-  name: string;
+  groupId: string;
   owner: string;
   members: string[]; // A list of the members usernames (sorted alphabetically)
   makeEventsPublic?: boolean; // A boolean indicating if the events of individual group members should be shown

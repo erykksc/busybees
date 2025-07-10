@@ -84,9 +84,10 @@ export default function CalendarLayout({
           return;
         }
 
-        const data: UserProfileDto = await response.json();
-        if (data.groupsNames) {
-          setLocalGroups(data.groups);
+        const data = await response.json();
+        const userProfile = data.userProfile as UserProfileDto;
+        if (userProfile.groupNames) {
+          setLocalGroups(data.groups ?? []);
         }
       } catch (err) {
         console.error("Error fetching user profile:", err);
@@ -252,7 +253,7 @@ export default function CalendarLayout({
           //localGroups={localGroups}
           localGroups={localGroups.map((g) => ({
             id: g.groupId,
-            name: g.name,
+            name: g.groupId,
             members: g.members,
           }))}
           onSelectCalendar={(calendar: any) => {
