@@ -35,6 +35,7 @@ export default function CalendarLayout({
   const [isNameValid, setIsNameValid] = useState(false);
   const [nameError, setNameError] = useState<string>("");
   const [makeEventsPublic, setMakeEventsPublic] = useState(false);
+  const [loadingIntegration, setLoadingIntegration] = useState<"Google"|"Microsoft"|"Apple"|null>(null);
 
   const handleAddGoogleCalendar = async () => {
     try {
@@ -63,11 +64,25 @@ export default function CalendarLayout({
   //   return <div>Loading...</div>;
   // }
 
+
   const integrations: Record<string, () => void> = {
     Google: handleAddGoogleCalendar,
     Microsoft: () => alert("Microsoft coming soon"),
     Apple: () => alert("Apple coming soon"),
   };
+
+  const handleIntegrationClick = async (type: "Google"|"Microsoft"|"Apple") => {
+    setShowExternalDropdown(false);
+    setLoadingIntegration(type);
+    try {
+      await integrations[type]();
+    } catch (e) {
+      console.error(`Error with ${type} integration:`, e);
+    } finally {
+      setLoadingIntegration(null);
+    }
+  };
+
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -189,23 +204,54 @@ export default function CalendarLayout({
         <div className="flex items-center space-x-2 ml-auto relative">
           <div className="relative">
             <button
-              onClick={() => setShowExternalDropdown((prev) => !prev)}
-              className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full shadow-md hover:bg-blue-300 transition-all text-sm"
+              onClick={() => setShowExternalDropdown((p) => !p)}
+              disabled={!!loadingIntegration}
+              className={`
+                flex items-center space-x-2
+                bg-blue-200 text-blue-800 px-3 py-1 rounded-full shadow-md
+                transition-all text-sm
+                ${loadingIntegration
+                  ? "opacity-70 cursor-wait"
+                  : "hover:bg-blue-300"
+                }
+              `}
             >
-              Add Your Calendar ▾
+              {loadingIntegration ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
+                  </svg>
+                  <span>Connecting…</span>
+                </>
+              ) : (
+                <span>Add Your Calendar ▾</span>
+              )}
             </button>
 
-            {showExternalDropdown && (
+            {showExternalDropdown && !loadingIntegration && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                {["Google", "Microsoft", "Apple"].map((type) => (
+                {( ["Google","Microsoft","Apple"] as const ).map((type) => (
                   <button
                     key={type}
-                    className="w-full px-4 py-2 text-left hover:bg-gray-100 text-sm"
-                    onClick={() => {
-                      setShowExternalDropdown(false);
-                      // alert(`${type} Calendar integration coming soon!`);
-                      integrations[type]();
-                    }}
+                    onClick={() => handleIntegrationClick(type)}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-100 text-sm flex items-center"
                   >
                     {type} Calendar
                   </button>

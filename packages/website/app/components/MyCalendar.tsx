@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect,useRef } from "react";
 import dayjs from "dayjs";
 import clsx from "clsx";
 import CreateEventModal from "./CreateEventModal";
 import isBetween from "dayjs/plugin/isBetween";
 import type { CalendarEventDto } from "@busybees/core";
 import { useAuth } from "react-oidc-context";
+import { useOutletContext } from "react-router";
 dayjs.extend(isBetween);
 const getDaysInMonth = (year: number, month: number): (number | null)[] => {
   const date = dayjs(`${year}-${month + 1}-01`);
@@ -19,6 +20,10 @@ const getDaysInMonth = (year: number, month: number): (number | null)[] => {
   return [...prev, ...curr];
 };
 
+interface OutletCtx {
+  activeTab: { type: string /* or "personal"|"group" */; /* … */ };
+}
+
 const MyCalendar = () => {
   const auth = useAuth();
   const [showEventModal, setShowEventModal] = useState(false);
@@ -29,6 +34,8 @@ const MyCalendar = () => {
   const [repeatType, setRepeatType] = useState("none");
   const [rangeEndDate, setRangeEndDate] = useState("");
   const [events, setEvents] = useState<CalendarEventDto[]>([]);
+  const hasFetched = useRef(false);
+  const { activeTab } = useOutletContext<OutletCtx>();
 
   const [viewDate, setViewDate] = useState(dayjs());
 
@@ -38,38 +45,34 @@ const MyCalendar = () => {
     if (viewDate.isAfter(now)) setViewDate(viewDate.subtract(1, "month"));
   };
 
+ 
   useEffect(() => {
-    const fetchEvents = async () => {
-      if (auth.isLoading) return;
-      if (!auth.user) return;
+    if (auth.isLoading || !auth.user) return;
 
-      const timeMin = viewDate.startOf("month").toISOString();
-      const timeMax = viewDate.endOf("month").toISOString();
+    if (activeTab.type !== "personal") return;
 
-      try {
-        const response = await fetch(
-          `/api/user/events?timeMin=${timeMin}&timeMax=${timeMax}`,
-          {
-            headers: {
-              Authorization: `Bearer ${auth.user.access_token}`,
-            },
-          },
-        );
 
-        if (!response.ok) {
-          console.error("Failed to fetch events.");
-          return;
-        }
+    if (hasFetched.current) return;
+    hasFetched.current = true;
 
-        const data = await response.json();
-        setEvents(data.events);
-      } catch (err) {
-        console.error("Error fetching events:", err);
-      }
-    };
+    const timeMin = viewDate.startOf("month").toISOString();
+    const timeMax = viewDate.endOf("month").toISOString();
 
-    fetchEvents();
-  }, [auth.user, auth.isLoading, viewDate]);
+    fetch(`/api/user/events?timeMin=${timeMin}&timeMax=${timeMax}`, {
+      headers: { Authorization: `Bearer ${auth.user.access_token}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(res.status + ": " + res.statusText);
+        return res.json();
+      })
+      .then((payload: { events: CalendarEventDto[] }) => {
+        setEvents(payload.events);
+      })
+      .catch((err) => console.error("Error fetching events:", err));
+  }, [auth.isLoading, auth.user, activeTab]);
+
+
+
 
   const eventsOnDay = (day: number): CalendarEventDto[] => {
     if (!day) return [];
@@ -99,6 +102,39 @@ const MyCalendar = () => {
     setEventEnd("");
     setShowEventModal(true);
   };
+
+  // useEffect(() => {
+  //   const fetchEvents = async () => {
+  //     if (auth.isLoading) return;
+  //     if (!auth.user) return;
+
+  //     const timeMin = viewDate.startOf("month").toISOString();
+  //     const timeMax = viewDate.endOf("month").toISOString();
+
+  //     try {
+  //       const response = await fetch(
+  //         `/api/user/events?timeMin=${timeMin}&timeMax=${timeMax}`,
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${auth.user.access_token}`,
+  //           },
+  //         },
+  //       );
+
+  //       if (!response.ok) {
+  //         console.error("Failed to fetch events.");
+  //         return;
+  //       }
+
+  //       const data = await response.json();
+  //       setEvents(data.events);
+  //     } catch (err) {
+  //       console.error("Error fetching events:", err);
+  //     }
+  //   };
+
+  //   fetchEvents();
+  // }, [auth.user, auth.isLoading, viewDate]);
 
   const handleSaveEvent = async () => {
     const eventsToCreate: CalendarEventDto[] = [];
