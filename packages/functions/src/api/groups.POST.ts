@@ -41,23 +41,24 @@ export const main = async (
       };
     }
 
-    const { result, groupCalendar } = await addGroupCalendar(client, {
-      groupId,
-      ownerAuthSub: authSub,
-    });
-
-    if (result.$metadata.httpStatusCode !== 200) {
+    try {
+      const { result, groupCalendar } = await addGroupCalendar(client, {
+        groupId,
+        ownerAuthSub: authSub,
+      });
+    } catch (error) {
+      logger.error("Error adding group calendar", { error });
       return {
-        statusCode: result.$metadata.httpStatusCode,
+        statusCode: 500,
         headers: {
           ContentType: "application/json",
         },
         body: JSON.stringify({
           error:
-            "Failed to add group calendar, likely the name of the group is already taken",
+            "Failed to add group calendar, likely the name/groupId of the group is already taken",
         }),
-      };
     }
+
 
     const groupCalendarDto: GroupCalendarDto = {
       groupId: groupCalendar.groupId,
