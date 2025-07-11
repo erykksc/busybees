@@ -4,12 +4,14 @@ import { Resource } from "sst";
 import { CalendarFreeBusyDto } from "../freebusy";
 import { UserProfile } from "./userProfile";
 
+export type FreeBusyCalendars = Record<string, CalendarFreeBusyDto>;
+
 export async function getFreeBusyUser(args: {
   logger?: Logger;
   userProfile: UserProfile;
   timeMin: string; // ISO 8601 format
   timeMax: string; // ISO 8601 format
-}): Promise<Record<string, CalendarFreeBusyDto>> {
+}): Promise<FreeBusyCalendars> {
   const { userProfile, logger, timeMin, timeMax } = args;
 
   const oauth2Client = new google.auth.OAuth2({
@@ -18,7 +20,7 @@ export async function getFreeBusyUser(args: {
     redirectUri: Resource.GoogleRedirectUri.value,
   });
 
-  const calendars: Record<string, CalendarFreeBusyDto> = {};
+  const calendars: FreeBusyCalendars = {};
   for (const key in userProfile) {
     if (key.startsWith("google-")) {
       const creds = userProfile[key as keyof UserProfile] as Auth.Credentials;

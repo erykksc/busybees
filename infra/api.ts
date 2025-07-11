@@ -108,6 +108,12 @@ apiGateway.route(
 );
 
 apiGateway.route(
+  "GET /api/groups/{groupId}/events",
+  "packages/functions/src/api/groups/[groupId]/events.GET.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+
+apiGateway.route(
   "POST /api/groups/{groupId}/events",
   "packages/functions/src/api/groups/[groupId]/events.POST.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },

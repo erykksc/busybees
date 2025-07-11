@@ -2,12 +2,14 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import {
+  CalendarEventDto,
   FreeBusyCalendars,
   getFreeBusyUser,
   getGroupCalendar,
   getUserProfile,
   UserProfile,
 } from "@busybees/core";
+import { v4 as uuidv4 } from "uuid";
 import {
   APIGatewayProxyEventV2WithJWTAuthorizer,
   APIGatewayProxyResultV2,
@@ -78,7 +80,6 @@ export const main = async (
     groupCalendar.members.forEach((member) => {
       promises.push(getUserProfile(client, { authSub: member }));
     });
-
     let userProfiles: (UserProfile | null)[] = [];
     try {
       userProfiles = await Promise.all(promises);
@@ -89,10 +90,11 @@ export const main = async (
     logger.info("User profiles retrieved", { userProfiles });
 
     // retrieve their freebusy calendars
-    let calPromises: Promise<FreeBusyCalendars>[] = [];
+    let calPromises: Promise<FreeBusyCalendars | null>[] = [];
     userProfiles.forEach((userProfile) => {
       if (userProfile === null) {
         logger.warn("User profile is null, skipping");
+        calPromises.push(Promise.resolve(null));
         return;
       }
       calPromises.push(
@@ -104,8 +106,7 @@ export const main = async (
         }),
       );
     });
-
-    let allUserCalendars: FreeBusyCalendars[] = [];
+    let allUserCalendars: (FreeBusyCalendars | null)[] = [];
     try {
       allUserCalendars = await Promise.all(calPromises);
       logger.info("All calendars busy times fetched", {
@@ -119,13 +120,34 @@ export const main = async (
       };
     }
 
+    // Transform busy times to CalendarEventDto array
+    const events: CalendarEventDto[] = [];
+    allUserCalendars.forEach((calendars, idx) => {
+      if (calendars === null) {
+        // the nulls are needed to retried user profiles based on idx
+        return;
+      }
+      Object.entries(calendars).forEach(([calendarGid, calendarData]) => {
+        calendarData.busy.forEach((busyTime) => {
+          events.push({
+            id: `${calendarGid}-${uuidv4()}`,
+            title: "Busy",
+            start: busyTime.start,
+            end: busyTime.end,
+            userId: userProfiles[idx]?.authSub || "unknown-user",
+            allDay: false,
+          });
+        });
+      });
+    });
+
     return {
       statusCode: 200, // OK
       headers: {
         ContentType: "application/json",
       },
       body: JSON.stringify({
-        allUserCalendars,
+        events,
       }),
     };
   } catch (error) {

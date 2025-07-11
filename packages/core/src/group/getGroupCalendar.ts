@@ -8,10 +8,12 @@ import {
 
 export async function getGroupCalendar(
   client: DynamoDBDocumentClient,
-  groupId: string,
-  options?: { consistentRead?: boolean },
-): Promise<GroupCalendar> {
-  const { consistentRead = false } = options ?? {};
+  args: {
+    groupId: string;
+    consistentRead?: boolean;
+  },
+): Promise<GroupCalendar | undefined> {
+  const { groupId, consistentRead = false } = args;
 
   const result = await client.send(
     new GetCommand({

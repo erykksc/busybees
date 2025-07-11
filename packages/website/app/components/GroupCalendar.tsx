@@ -156,7 +156,7 @@ const GroupCalendar = ({
 
       try {
         const response = await fetch(
-          `/api/groups/${group.id}/events?from=${from}&until=${until}`,
+          `/api/groups/${group.id}/events?timeMin=${from}&timeMax=${until}`,
           {
             headers: {
               Authorization: `Bearer ${auth.user.access_token}`,
