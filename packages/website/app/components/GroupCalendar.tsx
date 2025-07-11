@@ -5,8 +5,9 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import CreateEventModal from "./CreateEventModal";
 import InviteModal from "./InviteModal";
 import { removeUserFromGroup } from "../hooks/group";
-import type { User, Group, Event } from "~/types";
+import type { User, Group } from "~/types";
 import { useAuth } from "react-oidc-context";
+import type { CalendarEventDto } from "@busybees/core";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -31,7 +32,7 @@ interface Slot {
 }
 
 const findFreeSlots = (
-  events: Event[],
+  events: CalendarEventDto[],
   date: string,
   startHour: number,
   endHour: number,
@@ -96,7 +97,7 @@ const GroupCalendar = ({
   const [allDay, setAllDay] = useState(false);
   const [repeatType, setRepeatType] = useState("none");
   const [rangeEndDate, setRangeEndDate] = useState("");
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<CalendarEventDto[]>([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [groupMembers, setGroupMembers] = useState<User[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -186,7 +187,7 @@ const GroupCalendar = ({
 
   const days = getDaysInMonth(viewDate.year(), viewDate.month());
 
-  const eventsOnDay = (day: number): Event[] => {
+  const eventsOnDay = (day: number): CalendarEventDto[] => {
     if (!day) return [];
     const date = viewDate.date(day).format("YYYY-MM-DD");
     return events.filter((e) => dayjs(e.start).format("YYYY-MM-DD") === date);
