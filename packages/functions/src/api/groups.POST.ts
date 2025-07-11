@@ -46,6 +46,23 @@ export const main = async (
         groupId,
         ownerAuthSub: authSub,
       });
+      const groupCalendarDto: GroupCalendarDto = {
+        groupId: groupCalendar.groupId,
+        owner: groupCalendar.owner,
+        inviteUrl: "http://localhost:5173/" + groupCalendar.inviteCode,
+        members: Array.from(groupCalendar.members),
+      };
+
+      return {
+        statusCode: 200,
+        headers: {
+          ContentType: "application/json",
+        },
+        body: JSON.stringify({
+          message: `Group calendar ${groupId} added successfully`,
+          groupCalendar: groupCalendarDto,
+        }),
+      };
     } catch (error) {
       logger.error("Error adding group calendar", { error });
       return {
@@ -57,26 +74,8 @@ export const main = async (
           error:
             "Failed to add group calendar, likely the name/groupId of the group is already taken",
         }),
+      };
     }
-
-
-    const groupCalendarDto: GroupCalendarDto = {
-      groupId: groupCalendar.groupId,
-      owner: groupCalendar.owner,
-      inviteUrl: "http://localhost:5173/" + groupCalendar.inviteCode,
-      members: Array.from(groupCalendar.members),
-    };
-
-    return {
-      statusCode: 200,
-      headers: {
-        ContentType: "application/json",
-      },
-      body: JSON.stringify({
-        message: `Group calendar ${groupId} added successfully`,
-        groupCalendar: groupCalendarDto,
-      }),
-    };
   } catch (error) {
     logger.error("Error in OAuth callback", { error });
     return {
