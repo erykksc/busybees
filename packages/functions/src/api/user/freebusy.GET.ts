@@ -5,10 +5,7 @@ import {
 } from "aws-lambda";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { getUserProfile, UserProfile } from "@busybees/core";
-import { google, Auth } from "googleapis";
-import { Resource } from "sst";
-import { CalendarFreeBusyDto } from "@busybees/core";
+import { getFreeBusyUser, getUserProfile } from "@busybees/core";
 
 const dbClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
@@ -52,7 +49,7 @@ export const main = async (
     const userProfile = await getUserProfile(dbClient, {
       authSub: authSub,
     });
-    logger.info("User profile retrieved", { userProfile });
+    logger?.info("User profile retrieved", { userProfile });
 
     // Check if userProfile found
     if (!userProfile) {
@@ -64,70 +61,13 @@ export const main = async (
       };
     }
 
-    const oauth2Client = new google.auth.OAuth2({
-      clientId: Resource.GoogleClientId.value,
-      clientSecret: Resource.GoogleClientSecret.value,
-      redirectUri: Resource.GoogleRedirectUri.value,
+    const calendars = await getFreeBusyUser({
+      userProfile,
+      logger,
+      timeMin,
+      timeMax,
     });
 
-    const calendars: Record<string, CalendarFreeBusyDto> = {};
-    for (const key in userProfile) {
-      if (key.startsWith("google-")) {
-        const creds = userProfile[key as keyof UserProfile] as Auth.Credentials;
-        oauth2Client.setCredentials(creds);
-
-        const calendar = google.calendar({ version: "v3", auth: oauth2Client });
-        const calendarList = await calendar.calendarList.list({
-          showHidden: false,
-          showDeleted: false,
-          minAccessRole: "reader", // Only fetch calendars with reader access
-          maxResults: 250, // Limit to max limit
-        });
-        logger.info("Fetched calendar list", { calendarList });
-
-        const calendarFreeBusy = await calendar.freebusy.query({
-          requestBody: {
-            timeMin,
-            timeMax,
-            groupExpansionMax: 100,
-            calendarExpansionMax: 50,
-            items: calendarList.data.items?.map((item) => ({
-              id: item.id,
-            })),
-          },
-        });
-
-        logger.debug("Fetched calendar freebusy for all calendars", {
-          timeMin,
-          timeMax,
-          calendarEvents: calendarFreeBusy,
-        });
-
-        Object.entries(calendarFreeBusy.data?.calendars || {}).forEach(
-          ([calendarId, calendar]) => {
-            const calendarGid = `google-${calendarId}`;
-
-            logger.info("Processing calendar", { calendarId, calendar });
-            // Create new events for the calendar
-            if (calendars[calendarGid] === undefined) {
-              calendars[calendarGid] = { busy: [] };
-            }
-
-            // Validate busy times
-            calendar.busy?.forEach((busy) => {
-              if (!busy.start || !busy.end) {
-                logger.warn("Invalid busy event format", { calendarId, busy });
-                return;
-              }
-              calendars[calendarGid].busy.push({
-                start: busy.start,
-                end: busy.end,
-              });
-            });
-          },
-        );
-      }
-    }
     logger.info("All calendars busy times fetched", {
       calendars: calendars,
     });
