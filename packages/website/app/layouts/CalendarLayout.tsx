@@ -6,7 +6,6 @@ import BurgerMenu from "../components/BurgerMenu";
 // WARN: the route shouldn't be imported here at all
 import ProfileSettings from "../routes/settings";
 import { removeUserFromGroup } from "../hooks/group";
-import type { Group } from "../types";
 import type { GroupCalendarDto, UserProfileDto } from "@busybees/core";
 
 interface CalendarLayoutProps {
@@ -35,7 +34,9 @@ export default function CalendarLayout({
   const [isNameValid, setIsNameValid] = useState(false);
   const [nameError, setNameError] = useState<string>("");
   const [makeEventsPublic, setMakeEventsPublic] = useState(false);
-  const [loadingIntegration, setLoadingIntegration] = useState<"Google"|"Microsoft"|"Apple"|null>(null);
+  const [loadingIntegration, setLoadingIntegration] = useState<
+    "Google" | "Microsoft" | "Apple" | null
+  >(null);
 
   const handleAddGoogleCalendar = async () => {
     try {
@@ -64,14 +65,15 @@ export default function CalendarLayout({
   //   return <div>Loading...</div>;
   // }
 
-
   const integrations: Record<string, () => void> = {
     Google: handleAddGoogleCalendar,
     Microsoft: () => alert("Microsoft coming soon"),
     Apple: () => alert("Apple coming soon"),
   };
 
-  const handleIntegrationClick = async (type: "Google"|"Microsoft"|"Apple") => {
+  const handleIntegrationClick = async (
+    type: "Google" | "Microsoft" | "Apple",
+  ) => {
     setShowExternalDropdown(false);
     setLoadingIntegration(type);
     try {
@@ -82,7 +84,6 @@ export default function CalendarLayout({
       setLoadingIntegration(null);
     }
   };
-
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -144,7 +145,7 @@ export default function CalendarLayout({
           Authorization: `Bearer ${auth.user.access_token}`,
         },
         body: JSON.stringify({
-          name: trimmed,
+          groupId: trimmed,
           makeEventsPublic,
         }),
       });
@@ -153,7 +154,8 @@ export default function CalendarLayout({
         throw new Error("Failed to create group");
       }
 
-      const newGroup: GroupCalendarDto = await response.json();
+      const newGroup = (await response.json())
+        .groupCalendar as GroupCalendarDto;
       setLocalGroups((prev) => [...prev, newGroup]);
       // const inviteLink = `${window.location.origin}/invite/${newGroup.groupId}`;
       await navigator.clipboard.writeText(newGroup.inviteUrl);
@@ -210,9 +212,10 @@ export default function CalendarLayout({
                 flex items-center space-x-2
                 bg-blue-200 text-blue-800 px-3 py-1 rounded-full shadow-md
                 transition-all text-sm
-                ${loadingIntegration
-                  ? "opacity-70 cursor-wait"
-                  : "hover:bg-blue-300"
+                ${
+                  loadingIntegration
+                    ? "opacity-70 cursor-wait"
+                    : "hover:bg-blue-300"
                 }
               `}
             >
@@ -247,7 +250,7 @@ export default function CalendarLayout({
 
             {showExternalDropdown && !loadingIntegration && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                {( ["Google","Microsoft","Apple"] as const ).map((type) => (
+                {(["Google", "Microsoft", "Apple"] as const).map((type) => (
                   <button
                     key={type}
                     onClick={() => handleIntegrationClick(type)}
@@ -314,12 +317,15 @@ export default function CalendarLayout({
             setBurgerOpen(false);
             setShowCreateGroup(true);
           }}
-          onRemoveGroup={async (group: Group) => {
-            if (user && window.confirm(`Remove yourself from ${group.name}?`)) {
+          onRemoveGroup={async (group: GroupCalendarDto) => {
+            if (
+              user &&
+              window.confirm(`Remove yourself from ${group.groupId}?`)
+            ) {
               try {
-                await removeUserFromGroup(group.id, user.id);
+                await removeUserFromGroup(group.groupId, user.id);
                 setLocalGroups((prev) =>
-                  prev.filter((g) => g.groupId !== group.id),
+                  prev.filter((g) => g.groupId !== group.groupId),
                 );
               } catch (e) {
                 alert("Failed to leave the group.");

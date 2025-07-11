@@ -1,19 +1,3 @@
-export interface Group {
-  id: string;
-  name: string;
-  members: string[];
-  makeEventsPublic?: boolean;
-}
-
-export interface User {
-  id: string;
-  name?: string;
-  email: string;
-  showTitles: boolean;
-  color: string;
-  password: string;
-}
-
 export interface CreateEventModalProps {
   show: boolean;
   onClose: () => void;

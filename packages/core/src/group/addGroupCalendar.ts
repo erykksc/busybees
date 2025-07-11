@@ -10,7 +10,10 @@ import { v4 as uuidv4 } from "uuid";
 export async function addGroupCalendar(
   client: DynamoDBDocumentClient,
   args: { groupId: string; ownerAuthSub: string },
-): Promise<TransactWriteCommandOutput> {
+): Promise<{
+  result: TransactWriteCommandOutput;
+  groupCalendar: GroupCalendar;
+}> {
   const { groupId, ownerAuthSub } = args;
 
   const groupCalendar: GroupCalendar = {
@@ -79,5 +82,5 @@ export async function addGroupCalendar(
     }),
   );
 
-  return result;
+  return { result, groupCalendar };
 }

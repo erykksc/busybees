@@ -43,15 +43,15 @@
 //   };
 // }
 
+import type { GroupCalendarDto, UserProfileDto } from "@busybees/core";
 import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useAuth } from "react-oidc-context";
-import type { User, Group } from "~/types";
 
 export default function useCreateGroup(
-  user: User,
-  localGroups: Group[],
-  setLocalGroups: Dispatch<SetStateAction<Group[]>>,
+  user: UserProfileDto,
+  localGroups: GroupCalendarDto[],
+  setLocalGroups: Dispatch<SetStateAction<GroupCalendarDto[]>>,
 ) {
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState("");
@@ -74,7 +74,7 @@ export default function useCreateGroup(
           Authorization: `Bearer ${auth.user?.access_token}`,
         },
         body: JSON.stringify({
-          name,
+          groupId: name,
           makeEventsPublic,
         }),
       });
@@ -83,7 +83,8 @@ export default function useCreateGroup(
         throw new Error("Failed to create group");
       }
 
-      const newGroup: Group = await response.json();
+      const newGroup = (await response.json())
+        ?.groupCalendar as GroupCalendarDto;
 
       const updatedGroups = [...localGroups, newGroup];
       setLocalGroups(updatedGroups);
