@@ -48,4 +48,3 @@ export function useGroup(groupId: string | undefined) {
     error,
   };
 }
-

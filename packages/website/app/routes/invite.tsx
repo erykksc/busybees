@@ -1,177 +1,127 @@
-// import { useParams, useNavigate } from "react-router";
-// import { authGuard } from "~/components";
-// import { useAuth } from "react-oidc-context";
-// import { useEffect, useState } from "react";
-// import type {Group} from "~/types"
-
-// export default function Invite() {
-//   const { id } = useParams();
-//   const navigate = useNavigate();
-//   const { user, groups, joinGroup } = useAuth();
-//   const [checked, setChecked] = useState(false);
-
-// useEffect(() => {
-//   if (!user) {
-//     navigate(`/register?redirect=/invite/${id}`);
-//     return;
-//   }
-
-// const storedGroups = localStorage.getItem("groups");
-// const savedGroups: Group[] = storedGroups ? JSON.parse(storedGroups) : [];
-//   const groupIndex = savedGroups.findIndex((g) => g.id === id);
-//   if (groupIndex === -1) {
-//     alert("❌ Invalid or expired invite link!");
-//     navigate("/dashboard");
-//     return;
-//   }
-
-//   const group = savedGroups[groupIndex];
-
-//   if (!group.members.includes(user.email)) {
-//     group.members.push(user.email);
-//     savedGroups[groupIndex] = group;
-//     localStorage.setItem("groups", JSON.stringify(savedGroups));
-//     alert(`✅ You joined group "${group.name}"!`);
-//   } else {
-//     alert(`ℹ️ You're already in group "${group.name}".`);
-//   }
-
-//   navigate("/dashboard");
-// }, [user, id, navigate]);
-
-// const auth = useAuth();
-
-//     if (auth.isLoading) {
-//       return <div>Loading...</div>;
-//     }
-
-//     const handleAddGoogleCalendar = async () => {
-//       try {
-//         const response = await fetch(`/api/oauth/google/start`, {
-//           headers: {
-//             Authorization: `Bearer ${auth.user?.access_token}`,
-//           },
-//         });
-
-//         console.log("Response from OAuth start:", response);
-
-//         if (response.ok) {
-//           console.log("OAuth flow started successfully");
-//           const data = await response.json();
-//           if (data.redirectUrl) {
-//             window.location.href = data.redirectUrl;
-//           } else {
-//             console.error("No redirect URL returned from the server");
-//           }
-//         }
-//       } catch (error) {
-//         console.error("Error starting OAuth flow:", error);
-//       }
-//     };
-
-//   return (
-//     <div className="p-8 text-center">
-//       <h2 className="text-xl font-semibold">Joining group...</h2>
-//     </div>
-//   );
-// }
-
 import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { authGuard } from "~/components";
 
+export default authGuard(Invite);
+
 function Invite() {
-  const { id } = useParams();
+  const { id: inviteCode } = useParams();
   const navigate = useNavigate();
   const auth = useAuth();
 
   const [loading, setLoading] = useState(true);
-  const [joining, setJoining] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const joinGroup = async () => {
       if (!auth.user) {
-        navigate(`/register?redirect=/invite/${id}`);
+        navigate(`/register?redirect=/invite/${inviteCode}`);
+        return;
+      }
+
+      if (!inviteCode) {
+        setError("Invalid invite link.");
         return;
       }
 
       try {
-        const groupRes = await fetch(`/api/groups/${id}/profile`, {
+        console.log("Attempting to join group with invite code:", inviteCode);
+
+        // First, try to get the group by invite code
+        // Since there's no API endpoint for this, we'll need to create one or work around it
+        // For now, let's try a different approach - check if we can join directly
+        const joinRes = await fetch(`/api/groups/join/:inviteCode`, {
+          method: "POST",
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${auth.user.access_token}`,
           },
+          body: JSON.stringify({ inviteCode }),
         });
 
-        if (!groupRes.ok) {
-          alert("❌ Invalid or expired invite link.");
-          navigate("/");
+        if (joinRes.status === 404) {
+          // API endpoint doesn't exist, try alternative approach
+          // This is a workaround until the proper API is implemented
+          setError(
+            "Group joining functionality is not fully implemented yet. Please try again later.",
+          );
           return;
         }
 
-        const group = await groupRes.json();
-
-        const userEmail = auth.user?.profile?.email;
-
-        if (!userEmail) {
-          alert("User email not found.");
-          navigate("/");
-          return;
-        }
-
-        const isAlreadyMember = group.members.some(
-          (member: any) => member.email === userEmail,
-        );
-
-        if (isAlreadyMember) {
-          alert(`ℹ️ You're already in group "${group.name}".`);
-        } else {
-          const updatedGroup = {
-            ...group,
-            members: [...group.members, { email: auth.user.profile.email }],
-          };
-
-          const updateRes = await fetch(`/api/groups/${id}/profile`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${auth.user.access_token}`,
-            },
-            body: JSON.stringify(updatedGroup),
-          });
-
-          if (!updateRes.ok) {
-            throw new Error("Failed to join the group.");
+        if (!joinRes.ok) {
+          const errorData = await joinRes.json();
+          if (joinRes.status === 409) {
+            // Already a member
+            setError(`You're already a member of this group.`);
+            setTimeout(() => navigate("/"), 2000);
+            return;
           }
-
-          alert(`✅ You joined group "${group.name}"!`);
+          throw new Error(errorData.error || "Failed to join group");
         }
 
-        navigate("/calendar");
+        const result = await joinRes.json();
+        console.log("Successfully joined group:", result);
+
+        // Show success message and redirect
+        setError(`✅ Successfully joined group "${result.groupId}"!`);
+        setTimeout(() => navigate("/"), 2000);
       } catch (error) {
         console.error("Error joining group:", error);
-        alert("❌ Failed to join the group. Please try again later.");
-        navigate("/");
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to join the group. Please try again later.",
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
-      setJoining(true);
+    if (inviteCode && auth.user) {
       joinGroup();
+    } else if (!auth.user && !auth.isLoading) {
+      navigate(`/register?redirect=/invite/${inviteCode}`);
     }
-  }, [auth.user, id, navigate]);
+  }, [auth.user, auth.isLoading, inviteCode, navigate]);
 
-  if (auth.isLoading || loading || joining) {
+  if (auth.isLoading || loading) {
     return (
-      <div className="p-8 text-center">
-        <h2 className="text-xl font-semibold">Joining group...</h2>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">
+            Joining group...
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Please wait while we process your invite.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="text-4xl mb-4">
+            {error.includes("✅") ? "🎉" : "❌"}
+          </div>
+          <h2 className="text-xl font-semibold mb-4">
+            {error.includes("✅") ? "Welcome!" : "Oops!"}
+          </h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => navigate("/calendar/:groupId")}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Go to Calendar
+          </button>
+        </div>
       </div>
     );
   }
 
   return null;
 }
-
-export default authGuard(Invite);

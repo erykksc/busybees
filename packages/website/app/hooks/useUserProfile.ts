@@ -18,12 +18,12 @@ export function useUserProfile() {
     const fetchUserProfile = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const profileRes = await fetch("/api/user/profile", {
           headers: { Authorization: `Bearer ${auth.user?.access_token}` },
         });
-        
+
         if (!profileRes.ok) throw new Error("Failed to fetch profile");
 
         const { userProfile } = (await profileRes.json()) as {
