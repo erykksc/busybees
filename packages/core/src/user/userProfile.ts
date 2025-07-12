@@ -8,17 +8,20 @@ export class UserProfile {
   [key: `google-${string}`]: Auth.Credentials;
   [key: `microsoft-${string}`]: any;
   [key: `icsfeed-${string}`]: string;
-  groups?: Set<string>;
+  groupsOwner?: Set<string>;
+  groupsMember?: Set<string>;
 
   constructor(data: {
     authSub: string;
     username: string;
-    groups?: Set<string>;
+    groupsOwner?: Set<string>;
+    groupsMember?: Set<string>;
     [key: `google-${string}`]: Auth.Credentials;
     [key: `microsoft-${string}`]: any;
     [key: `icsfeed-${string}`]: string;
   }) {
-    const { authSub, username, groups, ...credentials } = data;
+    const { authSub, username, groupsOwner, groupsMember, ...credentials } =
+      data;
     if (!authSub || typeof authSub !== "string") {
       throw new Error("authSub must be a non-empty string");
     }
@@ -29,10 +32,15 @@ export class UserProfile {
     }
     this.username = username;
 
-    if (data.groups && data.groups.size === 0) {
-      throw new Error("Groups cannot be an empty Set");
+    if (groupsOwner && groupsOwner.size === 0) {
+      throw new Error("groupsOwner cannot be an empty Set");
     }
-    this.groups = data.groups;
+    this.groupsOwner = groupsOwner;
+
+    if (groupsMember && groupsMember.size === 0) {
+      throw new Error("groupsMember cannot be an empty Set");
+    }
+    this.groupsMember = groupsMember;
 
     // Narrowing helpers
     const isGoogleKey = (k: string): k is `google-${string}` =>
@@ -63,22 +71,30 @@ export class UserProfile {
   // Method to create a UserProfile instance from a record, dynamodb's Item
   // This method should only be used to read in already created UserProfiles
   static fromRecord(record: Record<string, any>): UserProfile {
-    const { authSub, username, groups, ...credentials } = record;
+    const { authSub, username, groupsMember, groupsOwner, ...credentials } =
+      record;
     return new UserProfile({
       authSub,
       username,
-      groups,
+      groupsOwner,
+      groupsMember,
       ...credentials,
     });
   }
 
   toDto(): UserProfileDto {
     // Convert groups Set to sorted array (to match the dto)
-    const groupNames: string[] = [];
-    this.groups?.forEach((group) => {
-      groupNames.push(group);
+    const groupsOwner: string[] = [];
+    this.groupsOwner?.forEach((group) => {
+      groupsOwner.push(group);
     });
-    groupNames.sort();
+    groupsOwner.sort();
+
+    const groupsMember: string[] = [];
+    this.groupsMember?.forEach((group) => {
+      groupsMember.push(group);
+    });
+    groupsMember.sort();
 
     // Get google account names using tokens
     const googleAccountNames: string[] = [];
@@ -92,7 +108,8 @@ export class UserProfile {
     });
     return {
       username: this.username,
-      groupNames,
+      groupsOwner,
+      groupsMember,
       googleAccountNames,
     };
   }
@@ -100,6 +117,7 @@ export class UserProfile {
 
 export interface UserProfileDto {
   username: string;
-  groupNames: string[]; // List of groups the user belongs to
+  groupsMember: string[]; // List of groups the user belongs to, including the ones being own by the user
+  groupsOwner?: string[]; // List of groups the user owns
   googleAccountNames: string[]; // List of Google Account names (primary email addresses)
 }

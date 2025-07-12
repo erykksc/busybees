@@ -70,8 +70,12 @@ export async function addGroupCalendar(
           Update: {
             TableName: Resource.UserProfilesTable.name,
             Key: { authSub: groupCalendar.owner },
-            UpdateExpression: "ADD #members :groupId",
-            ExpressionAttributeNames: { "#members": "members" },
+            UpdateExpression:
+              "ADD #groupsMember :groupId, #groupsOwner :groupId",
+            ExpressionAttributeNames: {
+              "#groupsMember": "groupsMember",
+              "#groupsOwner": "groupsOwner",
+            },
             ExpressionAttributeValues: {
               ":groupId": new Set([groupCalendar.groupId]),
             },
