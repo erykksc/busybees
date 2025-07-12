@@ -1,4 +1,4 @@
-import { useState, useEffect,useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import dayjs from "dayjs";
 import clsx from "clsx";
 import CreateEventModal from "./CreateEventModal";
@@ -21,7 +21,7 @@ const getDaysInMonth = (year: number, month: number): (number | null)[] => {
 };
 
 interface OutletCtx {
-  activeTab: { type: string /* or "personal"|"group" */; /* … */ };
+  activeTab: { type: string /* or "personal"|"group" */ /* … */ };
 }
 
 const MyCalendar = () => {
@@ -45,12 +45,10 @@ const MyCalendar = () => {
     if (viewDate.isAfter(now)) setViewDate(viewDate.subtract(1, "month"));
   };
 
- 
   useEffect(() => {
     if (auth.isLoading || !auth.user) return;
 
     if (activeTab.type !== "personal") return;
-
 
     if (hasFetched.current) return;
     hasFetched.current = true;
@@ -70,9 +68,6 @@ const MyCalendar = () => {
       })
       .catch((err) => console.error("Error fetching events:", err));
   }, [auth.isLoading, auth.user, activeTab]);
-
-
-
 
   const eventsOnDay = (day: number): CalendarEventDto[] => {
     if (!day) return [];
