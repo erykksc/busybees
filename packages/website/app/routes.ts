@@ -18,8 +18,9 @@ export default [
   route("/invite/:groupId", "./routes/invite.tsx"),
 
   layout("./layouts/CalendarLayout.tsx", [
-    route("/calendar", "./routes/calendar.tsx"),
+    route("/my-calendar", "./routes/calendar.tsx"),
     route("/settings", "./routes/settings.tsx"),
+    route("/calendar/:groupId", "./routes/group-calendar.tsx"),
   ]),
 
   // Test routes

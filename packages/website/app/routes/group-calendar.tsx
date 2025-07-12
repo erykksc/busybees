@@ -1,35 +1,32 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-import CreateEventModal from "./CreateEventModal";
-import InviteModal from "./InviteModal";
+import CreateEventModal from "../components/CreateEventModal";
+import InviteModal from "../components/InviteModal";
 import { removeUserFromGroup } from "../hooks/group";
-import type { User, Group } from "~/types";
 import { useAuth } from "react-oidc-context";
+import { useGroup } from "../hooks/useGroup";
+import { authGuard } from "~/components";
 import type { CalendarEventDto } from "@busybees/core";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 
-const getDaysInMonth = (year: number, month: number): (number | null)[] => {
-  const days = [];
-  const date = dayjs(`${year}-${month + 1}-01`);
-
-  let startDay = date.day();
-  startDay = ((startDay + 6) % 7) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
-
-  const endDay = date.daysInMonth();
-  const prev = [...Array(startDay).keys()].map(() => null);
-  const curr = Array.from({ length: endDay }, (_, i) => i + 1);
-
-  return [...prev, ...curr];
-};
-
 interface Slot {
   start: dayjs.Dayjs;
   end: dayjs.Dayjs;
 }
+
+const getDaysInMonth = (y: number, m: number): (number | null)[] => {
+  const date = dayjs(`${y}-${m + 1}-01`);
+  let sd = ((date.day() + 6) % 7) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  const prev = Array(sd).fill(null);
+  const daysInMonth = date.daysInMonth();
+  const curr = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  return [...prev, ...curr];
+};
 
 const findFreeSlots = (
   events: CalendarEventDto[],
@@ -39,158 +36,175 @@ const findFreeSlots = (
 ): Slot[] => {
   const start = dayjs(date).hour(startHour).minute(0).second(0);
   const end = dayjs(date).hour(endHour).minute(0).second(0);
-
   const sorted = [...events].sort((a, b) =>
     dayjs(a.start).diff(dayjs(b.start)),
   );
-
-  const freeSlots = [];
+  const slots: Slot[] = [];
   let lastEnd = start;
-
-  for (const event of sorted) {
-    const evStart = dayjs(event.start);
-    const evEnd = dayjs(event.end);
-
-    if (evStart.isAfter(lastEnd)) {
-      freeSlots.push({ start: lastEnd, end: evStart });
-    }
-
-    if (evEnd.isAfter(lastEnd)) {
-      lastEnd = evEnd;
-    }
+  for (const ev of sorted) {
+    const s = dayjs(ev.start),
+      e = dayjs(ev.end);
+    if (s.isAfter(lastEnd)) slots.push({ start: lastEnd, end: s });
+    if (e.isAfter(lastEnd)) lastEnd = e;
   }
-
-  if (lastEnd.isBefore(end)) {
-    freeSlots.push({ start: lastEnd, end });
-  }
-
-  return freeSlots;
+  if (lastEnd.isBefore(end)) slots.push({ start: lastEnd, end });
+  return slots;
 };
 
-const GroupCalendar = ({
-  group,
-  currentUser,
-  makeEventsPublic,
-  setMakeEventsPublic,
-}: {
-  group: Group;
-  currentUser: User;
-  makeEventsPublic: boolean;
-  setMakeEventsPublic: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
+// Generate consistent color for user based on their authSub
+const getUserColor = (authSub: string): string => {
+  const colors = [
+    "#ef4444",
+    "#f97316",
+    "#eab308",
+    "#22c55e",
+    "#06b6d4",
+    "#3b82f6",
+    "#8b5cf6",
+    "#ec4899",
+    "#84cc16",
+    "#f59e0b",
+    "#10b981",
+    "#6366f1",
+    "#f43f5e",
+    "#e11d48",
+    "#be123c",
+    "#9f1239",
+    "#881337",
+    "#7c2d12",
+    "#ea580c",
+    "#dc2626",
+    "#c2410c",
+    "#9a3412",
+    "#7c2d12",
+    "#65a30d",
+    "#16a34a",
+    "#15803d",
+    "#166534",
+    "#14532d",
+    "#0f766e",
+    "#0d9488",
+    "#0891b2",
+    "#0e7490",
+    "#155e75",
+    "#164e63",
+    "#1e40af",
+    "#1d4ed8",
+    "#2563eb",
+    "#3b82f6",
+    "#6366f1",
+    "#7c3aed",
+    "#8b5cf6",
+    "#a855f7",
+    "#c084fc",
+    "#d946ef",
+    "#e879f9",
+    "#f0abfc",
+    "#fbbf24",
+    "#f59e0b",
+    "#d97706",
+    "#b45309",
+    "#92400e",
+    "#78350f",
+    "#451a03",
+    "#365314",
+    "#4d7c0f",
+    "#65a30d",
+    "#84cc16",
+    "#a3e635",
+    "#bef264",
+    "#d9f99d",
+  ];
+
+  // Create a simple hash from the authSub
+  let hash = 0;
+  for (let i = 0; i < authSub.length; i++) {
+    hash = ((hash << 5) - hash + authSub.charCodeAt(i)) & 0xffffffff;
+  }
+
+  // Use the hash to pick a color consistently
+  return colors[Math.abs(hash) % colors.length];
+};
+
+export default authGuard(GroupCalendar);
+
+function GroupCalendar() {
   const auth = useAuth();
+  const { groupId } = useParams<{ groupId: string }>();
+  const { group, loading: groupLoading, error: groupError } = useGroup(groupId);
+  const [makeEventsPublic, setMakeEventsPublic] = useState(false);
+
   const [viewDate, setViewDate] = useState(dayjs());
-  const [showFreeSpots, setShowFreeSpots] = useState(false);
-  const DEFAULT_START = 8;
-  const DEFAULT_END = 21;
+  const [dayStart, setDayStart] = useState(8);
+  const [dayEnd, setDayEnd] = useState(21);
+  const [tempStart, setTempStart] = useState(8);
+  const [tempEnd, setTempEnd] = useState(21);
   const [showModal, setShowModal] = useState(false);
-  const [dayStart, setDayStart] = useState(DEFAULT_START);
-  const [dayEnd, setDayEnd] = useState(DEFAULT_END);
-  const [tempStart, setTempStart] = useState(dayStart);
-  const [tempEnd, setTempEnd] = useState(dayEnd);
-  const [saveForGroup, setSaveForGroup] = useState(true);
   const [showEventModal, setShowEventModal] = useState(false);
   const [eventTitle, setEventTitle] = useState("");
-  const [eventDate, setEventDate] = useState<string>("");
+  const [eventDate, setEventDate] = useState("");
   const [eventStart, setEventStart] = useState("");
   const [eventEnd, setEventEnd] = useState("");
-  const [allDay, setAllDay] = useState(false);
   const [repeatType, setRepeatType] = useState("none");
   const [rangeEndDate, setRangeEndDate] = useState("");
   const [events, setEvents] = useState<CalendarEventDto[]>([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [groupMembers, setGroupMembers] = useState<User[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [showFreeSpots, setShowFreeSpots] = useState(false);
+  const [saveForGroup, setSaveForGroup] = useState(true);
 
+  // 2️⃣ load events for this month
   useEffect(() => {
-    const fetchGroupMembers = async () => {
-      if (!auth.user) return;
-
-      try {
-        const res = await fetch(`/api/groups/${group.id}/profile`, {
-          headers: {
-            Authorization: `Bearer ${auth.user.access_token}`,
-          },
-        });
-
-        if (!res.ok) throw new Error("Failed to fetch group profile");
-
-        const data = await res.json();
-        setUsers(data.members); // Make sure `data.members` is a User[]
-      } catch (err) {
-        console.error("Error fetching group members:", err);
-      }
-    };
-
-    fetchGroupMembers();
-  }, [group.id, auth.user]);
-
-  useEffect(() => {
-    const fetchGroupProfile = async () => {
-      try {
-        const response = await fetch(`/api/groups/${group.id}/profile`, {
-          headers: {
-            Authorization: `Bearer ${auth.user?.access_token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch group profile");
+    if (!auth.user || !group?.groupId || groupLoading) return;
+    const t0 = viewDate.startOf("month").toISOString();
+    const t1 = viewDate.endOf("month").toISOString();
+    fetch(
+      `/api/groups/${encodeURIComponent(group.groupId)}/events?timeMin=${t0}&timeMax=${t1}`,
+      { headers: { Authorization: `Bearer ${auth.user.access_token}` } },
+    )
+      .then((r) => r.json())
+      .then((jsonData) => {
+        const groupEvents = jsonData.events as CalendarEventDto[];
+        let all = [...groupEvents];
+        if (makeEventsPublic) {
+          // also pull each member's events
+          Promise.all(
+            group.members.map((memId) =>
+              fetch(`/api/user/${memId}/events?timeMin=${t0}&timeMax=${t1}`, {
+                headers: { Authorization: `Bearer ${auth.user?.access_token}` },
+              })
+                .then((r) => r.json())
+                .then((p: { events: CalendarEventDto[] }) => p.events)
+                .catch(() => []),
+            ),
+          ).then((arrs) => {
+            arrs.forEach((a) => all.push(...a));
+            setEvents(all);
+          });
+        } else {
+          setEvents(all);
         }
+      })
+      .catch(console.error);
+  }, [viewDate, group, makeEventsPublic, auth.user]);
 
-        const data = await response.json();
-        setGroupMembers(data.members); // Assuming API returns `members: User[]`
-      } catch (err) {
-        console.error("Error fetching group profile:", err);
-      }
-    };
+  // Loading and error states
+  if (groupLoading) {
+    return <div className="p-4 text-center">Loading group...</div>;
+  }
 
-    fetchGroupProfile();
-  }, [group.id]);
-
-  useEffect(() => {
-    const fetchGroupEvents = async () => {
-      if (!auth.user) return;
-      const from = viewDate.startOf("month").toISOString();
-      const until = viewDate.endOf("month").toISOString();
-
-      try {
-        const response = await fetch(
-          `/api/groups/${group.id}/events?timeMin=${from}&timeMax=${until}`,
-          {
-            headers: {
-              Authorization: `Bearer ${auth.user.access_token}`,
-            },
-          },
-        );
-
-        if (!response.ok) throw new Error("Failed to fetch events.");
-        const data = await response.json();
-        setEvents(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchGroupEvents();
-  }, [viewDate, group.id, auth.user]);
-
-  const handleInviteAgain = () => {
-    const inviteLink = `${window.location.origin}/invite/${group.id}`;
-    navigator.clipboard.writeText(inviteLink).then(() => {
-      alert(`Invite link copied: ${inviteLink}`);
-    });
-  };
-
-  const today = dayjs().startOf("day");
-  const eightMonthsAhead = today.add(8, "month").endOf("month");
+  if (groupError || !group) {
+    return (
+      <div className="p-4 text-red-600">{groupError || "Group not found"}</div>
+    );
+  }
 
   const days = getDaysInMonth(viewDate.year(), viewDate.month());
-
-  const eventsOnDay = (day: number): CalendarEventDto[] => {
-    if (!day) return [];
-    const date = viewDate.date(day).format("YYYY-MM-DD");
-    return events.filter((e) => dayjs(e.start).format("YYYY-MM-DD") === date);
+  const today = dayjs().startOf("day");
+  const eightMonthsAhead = today.add(8, "month").endOf("month");
+  const eventsOnDay = (d: number) => {
+    if (!d) return [];
+    const iso = viewDate.date(d).format("YYYY-MM-DD");
+    return events.filter((e) => dayjs(e.start).format("YYYY-MM-DD") === iso);
   };
 
   const openModal = () => {
@@ -206,8 +220,11 @@ const GroupCalendar = ({
       return;
     }
     if (saveForGroup) {
-      localStorage.setItem(`group:${group.id}:dayStart`, tempStart.toString());
-      localStorage.setItem(`group:${group.id}:dayEnd`, tempEnd.toString());
+      localStorage.setItem(
+        `group:${group.groupId}:dayStart`,
+        tempStart.toString(),
+      );
+      localStorage.setItem(`group:${group.groupId}:dayEnd`, tempEnd.toString());
       setDayStart(tempStart);
       setDayEnd(tempEnd);
     } else {
@@ -270,11 +287,10 @@ const GroupCalendar = ({
         {showInviteModal && (
           <InviteModal
             group={group}
-            members={groupMembers}
+            members={group.members}
             onRemove={async (userId: string) => {
               try {
-                await removeUserFromGroup(group.id, userId);
-                setGroupMembers((prev) => prev.filter((u) => u.id !== userId));
+                await removeUserFromGroup(group.groupId, userId);
               } catch (e) {
                 alert("Failed to remove user.");
                 console.error(e);
@@ -284,7 +300,9 @@ const GroupCalendar = ({
           />
         )}
 
-        <h2 className="text-2xl font-bold text-center flex-1">{group.name}</h2>
+        <h2 className="text-2xl font-bold text-center flex-1">
+          {group.groupId}
+        </h2>
 
         <div className="flex flex-col items-center gap-1">
           <button
@@ -379,19 +397,19 @@ const GroupCalendar = ({
               >
                 <div className="text-xs font-bold">{d}</div>
                 {dayEvents.map((ev) => {
-                  const user = users.find((u: User) => u.id === ev.userId);
-                  if (!user) return null;
-                  const isPrivate = !user.showTitles;
+                  const isPrivate = false;
                   const title = ev.allDay
-                    ? `${user.name} (All Day)`
+                    ? `${ev.userId} (All Day)`
                     : isPrivate
-                      ? `${user.name}'s Event`
+                      ? `${ev.userId}'s Event`
                       : ev.title;
                   return (
                     <div
                       key={ev.id}
                       className="rounded-md px-1 py-0.5 mt-1 text-xs text-white"
-                      style={{ backgroundColor: user.color }}
+                      style={{
+                        backgroundColor: getUserColor(ev.userId),
+                      }}
                     >
                       {title}
                     </div>
@@ -510,15 +528,30 @@ const GroupCalendar = ({
         setRepeatType={setRepeatType}
         rangeEndDate={rangeEndDate}
         setRangeEndDate={setRangeEndDate}
-        onSave={() => {
-          const newEvent = {
+        onSave={async () => {
+          if (!auth.user) return;
+          const newEvent: CalendarEventDto = {
             id: crypto.randomUUID(),
             title: eventTitle,
-            start: eventStart,
-            end: eventEnd,
-            userId: String(currentUser.id),
-            allDay,
+            start: `${eventDate}T${eventStart}`,
+            end: `${eventDate}T${eventEnd}`,
+            userId: auth.user.profile.sub as string,
+            allDay: !eventStart || !eventEnd,
           };
+
+          try {
+            const res = await fetch(`/api/groups/${group.groupId}/events`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.user.access_token}`,
+              },
+              body: JSON.stringify(newEvent),
+            });
+            if (!res.ok) throw new Error("Failed to save event to group");
+          } catch (err) {
+            console.error(err);
+          }
 
           setEvents((prev) => [...prev, newEvent]);
           setShowEventModal(false);
@@ -526,6 +559,4 @@ const GroupCalendar = ({
       />
     </div>
   );
-};
-
-export default GroupCalendar;
+}

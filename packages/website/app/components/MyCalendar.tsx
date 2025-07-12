@@ -3,10 +3,15 @@ import dayjs from "dayjs";
 import clsx from "clsx";
 import CreateEventModal from "./CreateEventModal";
 import isBetween from "dayjs/plugin/isBetween";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import type { CalendarEventDto } from "@busybees/core";
 import { useAuth } from "react-oidc-context";
-import { useOutletContext } from "react-router";
+import { Toast } from "../components/Toast";
+
 dayjs.extend(isBetween);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 const getDaysInMonth = (year: number, month: number): (number | null)[] => {
   const date = dayjs(`${year}-${month + 1}-01`);
 
@@ -20,10 +25,6 @@ const getDaysInMonth = (year: number, month: number): (number | null)[] => {
   return [...prev, ...curr];
 };
 
-interface OutletCtx {
-  activeTab: { type: string /* or "personal"|"group" */ /* … */ };
-}
-
 const MyCalendar = () => {
   const auth = useAuth();
   const [showEventModal, setShowEventModal] = useState(false);
@@ -35,9 +36,10 @@ const MyCalendar = () => {
   const [rangeEndDate, setRangeEndDate] = useState("");
   const [events, setEvents] = useState<CalendarEventDto[]>([]);
   const hasFetched = useRef(false);
-  const { activeTab } = useOutletContext<OutletCtx>();
-
   const [viewDate, setViewDate] = useState(dayjs());
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [toast, setToast] = useState<{ message: string } | null>(null);
+  const showError = (msg: string) => setToast({ message: msg });
 
   const goToNextMonth = () => setViewDate(viewDate.add(1, "month"));
   const goToPrevMonth = () => {
@@ -46,28 +48,39 @@ const MyCalendar = () => {
   };
 
   useEffect(() => {
-    if (auth.isLoading || !auth.user) return;
+    const fetchEvents = async () => {
+      if (auth.isLoading || !auth.user) return;
+      if (hasFetched.current) return;
+      hasFetched.current = true;
 
-    if (activeTab.type !== "personal") return;
-
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-
-    const timeMin = viewDate.startOf("month").toISOString();
-    const timeMax = viewDate.endOf("month").toISOString();
-
-    fetch(`/api/user/events?timeMin=${timeMin}&timeMax=${timeMax}`, {
-      headers: { Authorization: `Bearer ${auth.user.access_token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error(res.status + ": " + res.statusText);
-        return res.json();
-      })
-      .then((payload: { events: CalendarEventDto[] }) => {
+      setLoadingEvents(true);
+      try {
+        const timeMin = viewDate.startOf("month").toISOString();
+        const timeMax = viewDate.endOf("month").toISOString();
+        const res = await fetch(
+          `/api/user/events?timeMin=${timeMin}&timeMax=${timeMax}`,
+          {
+            headers: {
+              Authorization: `Bearer ${auth.user.access_token}`,
+            },
+          },
+        );
+        if (!res.ok) {
+          console.error("Failed to fetch events:", await res.text());
+          return;
+        }
+        const payload = (await res.json()) as { events: CalendarEventDto[] };
         setEvents(payload.events);
-      })
-      .catch((err) => console.error("Error fetching events:", err));
-  }, [auth.isLoading, auth.user, activeTab]);
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        showError("Error fetching events.");
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchEvents();
+  }, [auth.isLoading, auth.user, viewDate]);
 
   const eventsOnDay = (day: number): CalendarEventDto[] => {
     if (!day) return [];
@@ -98,39 +111,6 @@ const MyCalendar = () => {
     setShowEventModal(true);
   };
 
-  // useEffect(() => {
-  //   const fetchEvents = async () => {
-  //     if (auth.isLoading) return;
-  //     if (!auth.user) return;
-
-  //     const timeMin = viewDate.startOf("month").toISOString();
-  //     const timeMax = viewDate.endOf("month").toISOString();
-
-  //     try {
-  //       const response = await fetch(
-  //         `/api/user/events?timeMin=${timeMin}&timeMax=${timeMax}`,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${auth.user.access_token}`,
-  //           },
-  //         },
-  //       );
-
-  //       if (!response.ok) {
-  //         console.error("Failed to fetch events.");
-  //         return;
-  //       }
-
-  //       const data = await response.json();
-  //       setEvents(data.events);
-  //     } catch (err) {
-  //       console.error("Error fetching events:", err);
-  //     }
-  //   };
-
-  //   fetchEvents();
-  // }, [auth.user, auth.isLoading, viewDate]);
-
   const handleSaveEvent = async () => {
     const eventsToCreate: CalendarEventDto[] = [];
 
@@ -149,7 +129,7 @@ const MyCalendar = () => {
         title: eventTitle,
         start: current.format("YYYY-MM-DD") + "T" + eventStart,
         end: current.format("YYYY-MM-DD") + "T" + eventEnd,
-        userId: auth.user.profile.sub, // or another unique ID from your backend
+        userId: auth.user.profile.sub,
         allDay: !eventStart || !eventEnd,
       });
 
@@ -206,52 +186,78 @@ const MyCalendar = () => {
       </div>
 
       {/* Days Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-          <div key={day} className="text-center font-semibold">
-            {day}
-          </div>
-        ))}
-
-        {days.map((d, i) => (
-          <div
-            key={i}
-            onClick={() => handleDayClick(d)}
-            className="border rounded-2xl min-h-[100px] p-1 bg-white shadow-sm relative cursor-pointer hover:bg-gray-50"
+      {loadingEvents ? (
+        <div className="flex justify-center items-center h-64">
+          <svg
+            className="animate-spin h-8 w-8 text-blue-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
           >
-            {d && <div className="font-bold text-xs mb-1">{d}</div>}
-            {d !== null &&
-              eventsOnDay(d).map((ev) => {
-                const title = ev.allDay ? `(All Day)` : ev.title;
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            />
+          </svg>
+          <span className="ml-2 text-blue-600">Loading events…</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+            <div key={day} className="text-center font-semibold">
+              {day}
+            </div>
+          ))}
 
-                const startDay = dayjs(ev.start).startOf("day");
-                const endDay = dayjs(ev.end).startOf("day");
+          {days.map((d, i) => (
+            <div
+              key={i}
+              onClick={() => handleDayClick(d)}
+              className="border rounded-2xl min-h-[100px] p-1 bg-white shadow-sm relative cursor-pointer hover:bg-gray-50"
+            >
+              {d && <div className="font-bold text-xs mb-1">{d}</div>}
+              {d !== null &&
+                eventsOnDay(d).map((ev) => {
+                  const title = ev.allDay ? `(All Day)` : ev.title;
 
-                const isRange = !startDay.isSame(endDay, "day");
+                  const startDay = dayjs(ev.start).startOf("day");
+                  const endDay = dayjs(ev.end).startOf("day");
 
-                return (
-                  <div
-                    key={ev.id}
-                    onClick={(e) => e.stopPropagation()}
-                    className={clsx(
-                      "relative rounded-md px-1 py-0.5 mt-1 text-xs text-white cursor-pointer",
-                    )}
-                    style={{ backgroundColor: "#4ade80" }}
-                  >
-                    {title}
+                  const isRange = !startDay.isSame(endDay, "day");
 
-                    {isRange && (
-                      <div
-                        className="absolute inset-x-0 top-0 bottom-0 bg-black opacity-10 rounded-full pointer-events-none"
-                        title="Range event"
-                      />
-                    )}
-                  </div>
-                );
-              })}
-          </div>
-        ))}
-      </div>
+                  return (
+                    <div
+                      key={ev.id}
+                      onClick={(e) => e.stopPropagation()}
+                      className={clsx(
+                        "relative rounded-md px-1 py-0.5 mt-1 text-xs text-white cursor-pointer",
+                      )}
+                      style={{ backgroundColor: "#4ade80" }}
+                    >
+                      {title}
+
+                      {isRange && (
+                        <div
+                          className="absolute inset-x-0 top-0 bottom-0 bg-black opacity-10 rounded-full pointer-events-none"
+                          title="Range event"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* The Modal for create event*/}
       <CreateEventModal
@@ -270,6 +276,10 @@ const MyCalendar = () => {
         setRangeEndDate={setRangeEndDate}
         onSave={handleSaveEvent}
       />
+      
+      {toast && (
+        <Toast message={toast.message} onClose={() => setToast(null)} />
+      )}
     </div>
   );
 };

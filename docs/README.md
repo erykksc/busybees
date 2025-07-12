@@ -162,8 +162,8 @@ sst secret set GoogleRedirectUri "https://your-api-domain/api/oauth/google/callb
 - `POST /api/groups/join/:inviteCode` - Join the group calendar using inviteCode
 - `POST /api/groups/:groupId/remove-member` - Remove a member from a group calendar
 - `DELETE /api/groups/:groupId` - Remove
-- `GET /api/groups/:groupId/profile` - Fetch profile of the group e.g., settings, members, invite link
-- `POST /api/groups/:groupId/profile` - Update profile of the group e.g., change settings or kick somebody out
+- `GET /api/groups/:groupId` - Fetch profile of the group e.g., settings, members, invite link
+- `POST /api/groups/:groupId` - Update profile of the group e.g., change settings or kick somebody out
 - `GET /api/groups/:groupId/freebusy?timeMin&timeMax` - Fetch events from all calendars of all group members `from` to `until` specified date-times
 - `POST /api/groups/:groupId/events` - Create/Update/Delete events in the group calendar
 
