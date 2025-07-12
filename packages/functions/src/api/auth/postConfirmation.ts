@@ -20,11 +20,12 @@ export const main = async (
       return event;
     }
 
-    const newUserProfile: UserProfile = {
+    const newUserProfile = new UserProfile({
       authSub: authSub,
-      groups: new Set(),
-    };
+      username: event.request.userAttributes.email || authSub,
+    });
 
+    logger.info("Creating new user profile", { newUserProfile });
     const result = await addUserProfile(docClient, newUserProfile);
     logger.info("User profile added", { result });
 

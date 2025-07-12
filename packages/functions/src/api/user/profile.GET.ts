@@ -1,7 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { getUserProfile, UserProfileDto } from "@busybees/core";
+import { getUserProfile } from "@busybees/core";
 import {
   APIGatewayProxyEventV2WithJWTAuthorizer,
   APIGatewayProxyResultV2,
@@ -37,28 +37,7 @@ export const main = async (
       };
     }
 
-    // Convert groups Set to sorted array (to match the dto)
-    const groupNames: string[] = [];
-    userProfile.groups?.forEach((group) => {
-      groupNames.push(group);
-    });
-    groupNames.sort();
-
-    // Get google account names using tokens
-    const googleAccountNames: string[] = [];
-    Object.keys(userProfile).forEach((key) => {
-      if (!key.startsWith("google-")) {
-        return;
-      }
-
-      const accountEmail = key.replace("google-", "");
-      googleAccountNames.push(accountEmail);
-    });
-
-    const userProfileDto: UserProfileDto = {
-      groupNames,
-      googleAccountNames,
-    };
+    const userProfileDto = userProfile.toDto();
     logger.info("UserProfileDto created", { userProfileDto });
 
     return {

@@ -25,5 +25,5 @@ export async function getUserProfile(
     return null;
   }
 
-  return result.Item as UserProfile;
+  return UserProfile.fromRecord(result.Item);
 }

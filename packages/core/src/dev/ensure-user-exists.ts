@@ -137,6 +137,7 @@ export async function ensureUserExistsAndLogin(
 
     const addProfileResponse = await addUserProfile(docClient, {
       authSub,
+      username,
     });
     console.error(
       "User profile added:",
