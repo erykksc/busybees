@@ -3,12 +3,15 @@ import dayjs from "dayjs";
 import clsx from "clsx";
 import CreateEventModal from "./CreateEventModal";
 import isBetween from "dayjs/plugin/isBetween";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import type { CalendarEventDto } from "@busybees/core";
 import { useAuth } from "react-oidc-context";
-import { useOutletContext } from "react-router";
 import { Toast } from "../components/Toast";
 
 dayjs.extend(isBetween);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 const getDaysInMonth = (year: number, month: number): (number | null)[] => {
   const date = dayjs(`${year}-${month + 1}-01`);
 
@@ -22,10 +25,6 @@ const getDaysInMonth = (year: number, month: number): (number | null)[] => {
   return [...prev, ...curr];
 };
 
-interface OutletCtx {
-  activeTab: { type: string /* or "personal"|"group" */ /* … */ };
-}
-
 const MyCalendar = () => {
   const auth = useAuth();
   const [showEventModal, setShowEventModal] = useState(false);
@@ -37,7 +36,6 @@ const MyCalendar = () => {
   const [rangeEndDate, setRangeEndDate] = useState("");
   const [events, setEvents] = useState<CalendarEventDto[]>([]);
   const hasFetched = useRef(false);
-  const { activeTab } = useOutletContext<OutletCtx>();
   const [viewDate, setViewDate] = useState(dayjs());
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [toast, setToast] = useState<{ message: string } | null>(null);
@@ -52,7 +50,6 @@ const MyCalendar = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       if (auth.isLoading || !auth.user) return;
-      if (activeTab.type !== "personal") return;
       if (hasFetched.current) return;
       hasFetched.current = true;
 
@@ -83,7 +80,7 @@ const MyCalendar = () => {
     };
 
     fetchEvents();
-  }, [auth.isLoading, auth.user, activeTab, viewDate]);
+  }, [auth.isLoading, auth.user, viewDate]);
 
   const eventsOnDay = (day: number): CalendarEventDto[] => {
     if (!day) return [];
@@ -279,6 +276,10 @@ const MyCalendar = () => {
         setRangeEndDate={setRangeEndDate}
         onSave={handleSaveEvent}
       />
+      
+      {toast && (
+        <Toast message={toast.message} onClose={() => setToast(null)} />
+      )}
     </div>
   );
 };

@@ -90,14 +90,14 @@ apiGateway.route(
 );
 
 apiGateway.route(
-  "GET /api/groups/{groupId}/profile",
-  "packages/functions/src/api/groups/[groupId]/profile.GET.main",
+  "GET /api/groups/{groupId}",
+  "packages/functions/src/api/groups/[groupId].GET.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
 
 apiGateway.route(
-  "POST /api/groups/{groupId}/profile",
-  "packages/functions/src/api/groups/[groupId]/profile.POST.main",
+  "POST /api/groups/{groupId}",
+  "packages/functions/src/api/groups/[groupId].POST.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
 );
 

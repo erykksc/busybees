@@ -83,18 +83,15 @@ export class UserProfile {
   }
 
   toDto(): UserProfileDto {
-    // Convert groups Set to sorted array (to match the dto)
-    const groupsOwner: string[] = [];
-    this.groupsOwner?.forEach((group) => {
-      groupsOwner.push(group);
-    });
-    groupsOwner.sort();
-
-    const groupsMember: string[] = [];
+    const groups: GroupInfoDto[] = [];
     this.groupsMember?.forEach((group) => {
-      groupsMember.push(group);
+      groups.push({
+        name: group,
+        isOwner: this.groupsOwner?.has(group) || false,
+      });
     });
-    groupsMember.sort();
+    // sort groups alphabetically based on group name
+    groups.sort((a, b) => a.name.localeCompare(b.name));
 
     // Get google account names using tokens
     const googleAccountNames: string[] = [];
@@ -107,17 +104,21 @@ export class UserProfile {
       googleAccountNames.push(accountEmail);
     });
     return {
+      authSub: this.authSub,
       username: this.username,
-      groupsOwner,
-      groupsMember,
+      groups,
       googleAccountNames,
     };
   }
 }
 
+export interface GroupInfoDto {
+  name: string;
+  isOwner: boolean;
+}
 export interface UserProfileDto {
+  authSub: string; // id of the user
   username: string;
-  groupsMember: string[]; // List of groups the user belongs to, including the ones being own by the user
-  groupsOwner?: string[]; // List of groups the user owns
+  groups: GroupInfoDto[];
   googleAccountNames: string[]; // List of Google Account names (primary email addresses)
 }
