@@ -35,4 +35,3 @@ export default function CalendarLayout() {
     </div>
   );
 }
-

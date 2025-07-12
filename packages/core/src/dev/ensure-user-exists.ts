@@ -7,12 +7,16 @@ import {
   AdminSetUserPasswordCommand,
   AdminInitiateAuthCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
-import { addUserProfile } from "../user/addUserProfile";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import jwt from "jsonwebtoken";
+import { UserService } from "../user";
 
 const client = new CognitoIdentityProviderClient({
   region: Resource.AwsRegion.value,
+});
+
+const userService = new UserService({
+  dbClient: DynamoDBDocumentClient.from(new DynamoDBClient({})),
 });
 
 /**
@@ -130,12 +134,7 @@ export async function ensureUserExistsAndLogin(
   try {
     console.error("Creating user profile in DynamoDB...");
 
-    const dbClient = new DynamoDBClient({
-      region: Resource.AwsRegion.value,
-    });
-    const docClient = DynamoDBDocumentClient.from(dbClient);
-
-    const addProfileResponse = await addUserProfile(docClient, {
+    const addProfileResponse = await userService.addUserProfile({
       authSub,
       username,
     });

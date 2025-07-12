@@ -276,7 +276,7 @@ const MyCalendar = () => {
         setRangeEndDate={setRangeEndDate}
         onSave={handleSaveEvent}
       />
-      
+
       {toast && (
         <Toast message={toast.message} onClose={() => setToast(null)} />
       )}

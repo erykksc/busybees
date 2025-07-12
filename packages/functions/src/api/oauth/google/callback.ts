@@ -2,15 +2,19 @@ import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { google } from "googleapis";
 import { Resource } from "sst";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { decodeOauthState, BbOauthState } from "@busybees/core";
+import { decodeOauthState, BbOauthState, UserService } from "@busybees/core";
 import { parseCookies } from "utils";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { upsertGoogleCalendarInUserProfile } from "@busybees/core";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
-const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const dbClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const logger = new Logger({
   serviceName: "sst-app",
+});
+
+const userService = new UserService({
+  logger,
+  dbClient,
 });
 
 export const main = async (
@@ -151,7 +155,7 @@ export const main = async (
       profile,
     });
 
-    const results = await upsertGoogleCalendarInUserProfile(docClient, {
+    const results = await userService.upsertGoogleCreds2UserProfile({
       authSub: stateData.authSub,
       primaryEmail,
       creds: tokens,

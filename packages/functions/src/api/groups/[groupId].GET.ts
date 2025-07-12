@@ -1,7 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { getGroupCalendar } from "@busybees/core";
+import { UserService, GroupCalendarService } from "@busybees/core";
 import {
   APIGatewayProxyEventV2WithJWTAuthorizer,
   APIGatewayProxyResultV2,
@@ -11,6 +11,17 @@ const dbClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 const logger = new Logger({
   serviceName: "sst-app",
+});
+
+const userService = new UserService({
+  logger,
+  dbClient,
+});
+
+const groupService = new GroupCalendarService({
+  logger,
+  dbClient,
+  userService,
 });
 
 export const main = async (
@@ -31,7 +42,7 @@ export const main = async (
       };
     }
 
-    const groupCalendar = await getGroupCalendar(dbClient, {
+    const groupCalendar = await groupService.getGroupCalendar({
       groupId,
     });
     if (!groupCalendar) {

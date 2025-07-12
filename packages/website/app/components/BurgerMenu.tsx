@@ -19,9 +19,7 @@ export default function BurgerMenu({
   const { userProfile, loading, error } = useUserProfile();
   const { groupId } = useParams<{ groupId?: string }>();
   const auth = useAuth();
-  const [pendingRemove, setPendingRemove] = useState<GroupInfoDto | null>(
-    null,
-  );
+  const [pendingRemove, setPendingRemove] = useState<GroupInfoDto | null>(null);
 
   const isPersonalCalendar = location.pathname === "/my-calendar";
   const activeGroupId = groupId;
@@ -61,17 +59,11 @@ export default function BurgerMenu({
         </li>
 
         {loading && (
-          <li className="text-center text-gray-500">
-            Loading groups...
-          </li>
+          <li className="text-center text-gray-500">Loading groups...</li>
         )}
-        
-        {error && (
-          <li className="text-center text-red-500 text-sm">
-            {error}
-          </li>
-        )}
-        
+
+        {error && <li className="text-center text-red-500 text-sm">{error}</li>}
+
         {userProfile?.groups.map((group) => (
           <li
             key={group.name}
@@ -120,9 +112,7 @@ export default function BurgerMenu({
           <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm font-cute text-gray-800">
             <h3 className="text-lg mb-4 text-center">
               Are you sure you want to leave <br />
-              <span className="text-black font-bold">
-                {pendingRemove.name}
-              </span>
+              <span className="text-black font-bold">{pendingRemove.name}</span>
               ?
             </h3>
             <div className="flex justify-center gap-4 mt-4">

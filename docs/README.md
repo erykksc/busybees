@@ -145,7 +145,7 @@ sst secret set GoogleRedirectUri "https://your-api-domain/api/oauth/google/callb
 #### Logged in User's Endpoints
 
 - `GET /api/user/profile` - Get profile of the authenticated in user (settings, calendar integrations). Returns `UserProfileDto from packages/core`
-<!-- - `POST /api/user/profile` - Update profile of the authenticated user (settings, calendar integrations). For now there are no customization options. -->
+- `POST /api/user/profile` - Update profile of the authenticated user (settings, calendar integrations). For now there are no customization options.
 - `GET /api/user/events?timeMin&timeMax` - Fetch busy statuses from all calendars of the authenticated user `timeMin` to `timeMax` date-times,
   and transforms them into event types (done as prototyping compatibility measure between frontend and backend)
 - `GET /api/user/freebusy?timeMin&timeMax` - Fetch busy statuses from all calendars of the authenticated user `timeMin` to `timeMax` date-times
@@ -159,11 +159,12 @@ sst secret set GoogleRedirectUri "https://your-api-domain/api/oauth/google/callb
     groupId: string # This will also be the group name
   }
   ```
-- `POST /api/groups/join/:inviteCode` - Join the group calendar using inviteCode
+- `GET /api/groups/join/:inviteCode` - Join the group calendar using inviteCode, redirects to group calendar on successful join
 - `POST /api/groups/:groupId/remove-member` - Remove a member from a group calendar
 - `DELETE /api/groups/:groupId` - Remove
 - `GET /api/groups/:groupId` - Fetch profile of the group e.g., settings, members, invite link
 - `POST /api/groups/:groupId` - Update profile of the group e.g., change settings or kick somebody out
+- `GET /api/groups/:groupId/events?timeMin&timeMax` - Fetch events from all calendars of all group members `timeMin` to `timeMax` specified date-times
 - `GET /api/groups/:groupId/freebusy?timeMin&timeMax` - Fetch events from all calendars of all group members `from` to `until` specified date-times
 - `POST /api/groups/:groupId/events` - Create/Update/Delete events in the group calendar
 

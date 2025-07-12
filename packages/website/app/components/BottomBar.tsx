@@ -57,7 +57,7 @@ export default function BottomBar({ onCreateGroup }: BottomBarProps) {
       }
 
       const { groupCalendar: newGroup } = await response.json();
-      
+
       await navigator.clipboard.writeText(newGroup.inviteUrl);
       alert(`Invite link copied: ${newGroup.inviteUrl}`);
 
@@ -106,9 +106,7 @@ export default function BottomBar({ onCreateGroup }: BottomBarProps) {
               }`}
             >
               {group.name}
-              {group.isOwner && (
-                <span className="ml-1 text-xs">👑</span>
-              )}
+              {group.isOwner && <span className="ml-1 text-xs">👑</span>}
             </Link>
           );
         })}

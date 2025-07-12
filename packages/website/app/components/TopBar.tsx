@@ -13,7 +13,7 @@ export default function TopBar({ onOpenBurger }: TopBarProps) {
   const location = useLocation();
   const auth = useAuth();
   const { group } = useGroup(groupId);
-  
+
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showExternalDropdown, setShowExternalDropdown] = useState(false);
   const [loadingIntegration, setLoadingIntegration] = useState<
@@ -22,7 +22,9 @@ export default function TopBar({ onOpenBurger }: TopBarProps) {
 
   // Determine title based on current route
   const isPersonalCalendar = location.pathname === "/my-calendar";
-  const title = isPersonalCalendar ? "My Calendar" : (group?.groupId || "Loading...");
+  const title = isPersonalCalendar
+    ? "My Calendar"
+    : group?.groupId || "Loading...";
 
   const handleAddGoogleCalendar = async () => {
     try {
@@ -63,19 +65,14 @@ export default function TopBar({ onOpenBurger }: TopBarProps) {
   return (
     <div className="flex justify-between items-center px-4 py-2 border-b">
       <div className="flex items-center space-x-4">
-        <button
-          onClick={onOpenBurger}
-          className="focus:outline-none"
-        >
+        <button onClick={onOpenBurger} className="focus:outline-none">
           <div className="space-y-1">
             <div className="w-5 h-0.5 bg-gray-800" />
             <div className="w-5 h-0.5 bg-gray-800" />
             <div className="w-5 h-0.5 bg-gray-800" />
           </div>
         </button>
-        <div className="text-lg font-semibold">
-          {title}
-        </div>
+        <div className="text-lg font-semibold">{title}</div>
       </div>
 
       <div className="flex items-center space-x-2 ml-auto relative">
