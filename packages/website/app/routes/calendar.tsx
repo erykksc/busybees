@@ -2,7 +2,7 @@ import { useOutletContext } from "react-router";
 import { useAuth } from "react-oidc-context";
 import { authGuard } from "~/components";
 import MyCalendar from "~/components/MyCalendar";
-import GroupCalendar from "~/components/GroupCalendar";
+import GroupCalendar from "~/routes/group-calendar";
 import type { CalendarLayoutContext } from "~/types";
 
 export default authGuard(CalendarPage);

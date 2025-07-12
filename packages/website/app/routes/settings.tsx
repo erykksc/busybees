@@ -49,7 +49,7 @@ export default function ProfileSettings({
     try {
       await handleAddGoogleCalendar();
       onAddCalendar("Google");
-      onClose(); // if you want to close the modal after
+      onClose();
     } catch (e) {
       console.error(e);
       setIsAddingGoogle(false);
@@ -61,7 +61,7 @@ export default function ProfileSettings({
       <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 space-y-6 font-cute text-gray-800 relative">
         {/* Close */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/calendar")}
           className="absolute top-4 right-4 text-gray-500 text-xl hover:text-red-500"
         >
           ✖
