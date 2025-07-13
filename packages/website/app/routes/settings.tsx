@@ -63,10 +63,8 @@ function ProfileSettings() {
   }, [auth.user]);
 
   const handleRemoveCalendar = async (connection: CalendarConnection) => {
-    // TODO: Implement calendar removal API call
     console.log("Removing calendar:", connection);
 
-    // For now, just remove from local state
     setCalendarConnections((prev) =>
       prev.filter((conn) => conn.id !== connection.id),
     );
@@ -100,8 +98,7 @@ function ProfileSettings() {
     setIsAddingGoogle(true);
     try {
       await handleAddGoogleCalendar();
-      // Refresh user profile after adding calendar
-      window.location.reload(); // Simple reload for now
+      window.location.reload(); 
     } catch (e) {
       console.error(e);
       setIsAddingGoogle(false);
@@ -187,7 +184,10 @@ function ProfileSettings() {
               + Add Google Calendar
             </button> */}
             <button
-              onClick={handleGoogleLoading}
+              onClick= {async () => {
+                await handleAddGoogleCalendar();
+                await handleGoogleLoading();
+              }}
               disabled={isAddingGoogle}
               className={`
           flex items-center justify-center
@@ -244,7 +244,7 @@ function ProfileSettings() {
 
         {/* Confirm Remove Modal */}
         {pendingRemove && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded shadow-md w-full max-w-sm font-cute">
               <h3 className="font-bold text-lg mb-4 text-center">
                 Remove {pendingRemove.type} calendar ({pendingRemove.email})

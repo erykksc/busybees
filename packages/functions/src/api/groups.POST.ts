@@ -64,7 +64,7 @@ export const main = async (
       const groupCalendarDto: GroupCalendarDto = {
         groupId: groupCalendar.groupId,
         owner: groupCalendar.owner,
-        inviteUrl: "http://localhost:5173/" + groupCalendar.inviteCode,
+        inviteUrl: "http://localhost:5173/invite/" + groupCalendar.inviteCode,
         members: Array.from(groupCalendar.members),
       };
 

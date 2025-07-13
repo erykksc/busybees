@@ -19,27 +19,13 @@ export default function InviteModal({
   const inviteLink =
     group.inviteUrl || `${window.location.origin}/invite/${group.inviteCode}`;
 
-  // Debug what we're getting
-  console.log(
-    "InviteModal members:",
-    members,
-    "type:",
-    typeof members,
-    "isArray:",
-    Array.isArray(members),
-  );
-  console.log("InviteModal group:", group);
-  console.log("InviteModal group.inviteUrl:", group.inviteUrl);
-
-  // Ensure members is an array - handle Set, object, or array
-  const membersList = Array.isArray(members)
+    const membersList = Array.isArray(members)
     ? members
     : members instanceof Set
       ? Array.from(members)
       : typeof members === "object" && members !== null
         ? Object.values(members).filter(Boolean)
         : [];
-
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(inviteLink);
@@ -56,7 +42,7 @@ export default function InviteModal({
         <h2 className="text-lg font-bold mb-4">Group Members</h2>
 
         <ul className="mb-4">
-          {membersList.length > 0 ? (
+        {membersList.length > 0 ? (
             membersList.map((member) => (
               <li
                 key={member}

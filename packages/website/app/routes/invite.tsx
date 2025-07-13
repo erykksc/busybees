@@ -64,14 +64,14 @@ function Invite() {
           const errorData = await joinRes.json();
           if (joinRes.status === 409) {
             setError(`You're already a member of this group.`);
-            setTimeout(() => navigate("/"), 2000);
+            setTimeout(() => navigate("/my-calendar"), 2000);
             return;
           }
           throw new Error(errorData.error || "Failed to join group");
         }
 
         setError(`✅ Successfully joined group!`);
-        setTimeout(() => navigate("/"), 2000);
+        setTimeout(() => navigate("/my-calendar"), 2000);
       } catch (error) {
         console.error("Error joining group:", error);
         setError(
@@ -128,7 +128,7 @@ function Invite() {
           </h2>
           <p className="text-gray-600 mb-6">{error}</p>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/my-calendar")}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
             Go to Calendar
