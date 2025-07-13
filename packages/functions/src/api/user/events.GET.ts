@@ -5,7 +5,7 @@ import {
 } from "aws-lambda";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { CalendarEventDto, UserService } from "@busybees/core";
+import { CalendarEventDto, UserService, createCacheService } from "@busybees/core";
 import { v4 as uuidv4 } from "uuid";
 
 const dbClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
@@ -14,9 +14,12 @@ const logger = new Logger({
   serviceName: "sst-app",
 });
 
+const cacheService = createCacheService(logger);
+
 const userService = new UserService({
   logger,
   dbClient,
+  cacheService,
 });
 
 // TODO: this function is mostly a copy of /api/user/freebusy route,

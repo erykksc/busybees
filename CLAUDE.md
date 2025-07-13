@@ -76,6 +76,33 @@ sst shell src/example.ts
 - Local development uses `sst dev` which deploys actual AWS resources for testing
 - The `sst shell` command provides access to deployed resources for scripts and testing
 
+### Redis Caching (Development Only)
+
+For performance optimization, the app uses Redis caching for expensive Google Calendar API calls:
+
+- **Development**: Uses local Redis via Docker container
+- **Production**: Caching disabled to avoid AWS Redis costs
+- **Cache TTL**: 24 hours for freebusy data
+- **Cache Key**: `freebusy:{authSub}:{timeMin}:{timeMax}`
+
+#### Setup Redis for Development
+
+```bash
+# Start Redis container
+docker-compose up -d redis
+
+# Verify Redis is running
+docker-compose ps redis
+
+# Stop Redis when done
+docker-compose down
+```
+
+The cache service automatically:
+- Connects to `redis://localhost:6379` in development
+- Falls back gracefully if Redis is unavailable
+- Disables caching entirely in production environments
+
 ## Testing
 
 - Core package uses Vitest for unit testing via `sst shell vitest`

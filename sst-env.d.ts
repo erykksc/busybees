@@ -29,6 +29,13 @@ declare module "sst" {
       "type": "sst.aws.ApiGatewayV2"
       "url": string
     }
+    "MyRedis": {
+      "host": string
+      "password": string
+      "port": number
+      "type": "sst.aws.Redis"
+      "username": string
+    }
     "MyUserPool": {
       "id": string
       "type": "sst.aws.CognitoUserPool"

@@ -1,6 +1,7 @@
 import db from "./db";
 import secrets from "./secrets";
 import { userPool, userPoolClient } from "./auth";
+import { redis } from "./cache";
 
 export const apiGateway = new sst.aws.ApiGatewayV2("MyApi", {
   // domain:
@@ -19,6 +20,7 @@ export const apiGateway = new sst.aws.ApiGatewayV2("MyApi", {
     secrets.googleClientSecret,
     secrets.googleRedirectUri,
     userPoolClient,
+    redis,
   ],
   transform: {
     route: {

@@ -46,6 +46,7 @@ For development SST framework allows easy development deployment.
 Configure your aws cli first with your account and then run:
 
 ```bash
+docker-compose up -d # start local redis cache to reduce cloud costs during development
 npx sst dev
 ```
 

@@ -5,7 +5,7 @@ import {
 } from "aws-lambda";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { UserService } from "@busybees/core";
+import { UserService, createCacheService } from "@busybees/core";
 
 const dbClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
@@ -13,9 +13,12 @@ const logger = new Logger({
   serviceName: "sst-app",
 });
 
+const cacheService = createCacheService(logger);
+
 const userService = new UserService({
   dbClient,
   logger,
+  cacheService,
 });
 
 export const main = async (

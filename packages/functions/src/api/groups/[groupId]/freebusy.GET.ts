@@ -6,6 +6,7 @@ import {
   UserProfile,
   UserService,
   GroupCalendarService,
+  createCacheService,
 } from "@busybees/core";
 import {
   APIGatewayProxyEventV2WithJWTAuthorizer,
@@ -18,9 +19,12 @@ const logger = new Logger({
   serviceName: "sst-app",
 });
 
+const cacheService = createCacheService(logger);
+
 const userService = new UserService({
   logger,
   dbClient,
+  cacheService,
 });
 
 const groupService = new GroupCalendarService({

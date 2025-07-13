@@ -7,6 +7,7 @@ import {
   UserProfile,
   UserService,
   GroupCalendarService,
+  createCacheService,
 } from "@busybees/core";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -20,9 +21,12 @@ const logger = new Logger({
   serviceName: "sst-app",
 });
 
+const cacheService = createCacheService(logger);
+
 const userService = new UserService({
   logger,
   dbClient,
+  cacheService,
 });
 
 const groupService = new GroupCalendarService({

@@ -13,16 +13,23 @@ import {
 import { UserProfile } from "./userProfile";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { CalendarFreeBusyDto } from "../freebusy";
+import { CacheService } from "../cache";
 
 export type FreeBusyCalendars = Record<string, CalendarFreeBusyDto>;
 
 export class UserService {
   private logger?: Logger;
   private dbClient: DynamoDBDocumentClient;
+  private cacheService?: CacheService;
 
-  constructor(args: { logger?: Logger; dbClient: DynamoDBDocumentClient }) {
+  constructor(args: {
+    logger?: Logger;
+    dbClient: DynamoDBDocumentClient;
+    cacheService?: CacheService;
+  }) {
     this.logger = args.logger;
     this.dbClient = args.dbClient;
+    this.cacheService = args.cacheService;
   }
 
   async getUserProfile(args: {
@@ -121,6 +128,16 @@ export class UserService {
       authSub,
     });
 
+    // Invalidate cached freebusy data since user has new calendar connection
+    if (this.cacheService) {
+      const deletedCount = await this.cacheService.invalidateUserFreeBusyCache(authSub);
+      this.logger?.info("Invalidated freebusy cache after adding calendar connection", {
+        authSub,
+        primaryEmail,
+        deletedCount,
+      });
+    }
+
     return result;
   }
 
@@ -130,6 +147,49 @@ export class UserService {
     timeMax: string; // ISO 8601 format
   }): Promise<FreeBusyCalendars> {
     const { userProfile, timeMin, timeMax } = args;
+
+    // Try to get from cache first
+    let cacheKey: string | undefined;
+    if (this.cacheService) {
+      cacheKey = this.cacheService.generateFreeBusyKey(
+        userProfile.authSub,
+        timeMin,
+        timeMax,
+      );
+      
+      this.logger?.info("Checking cache for FreeBusy data", {
+        authSub: userProfile.authSub,
+        timeMin,
+        timeMax,
+        cacheKey,
+      });
+
+      const cachedResult = await this.cacheService.get<FreeBusyCalendars>(cacheKey);
+
+      if (cachedResult) {
+        this.logger?.info("FreeBusy cache hit", {
+          authSub: userProfile.authSub,
+          timeMin,
+          timeMax,
+          cacheKey,
+          calendarCount: Object.keys(cachedResult).length,
+        });
+        return cachedResult;
+      }
+
+      this.logger?.info("FreeBusy cache miss, fetching from Google API", {
+        authSub: userProfile.authSub,
+        timeMin,
+        timeMax,
+        cacheKey,
+      });
+    } else {
+      this.logger?.info("Cache service not available, fetching from Google API", {
+        authSub: userProfile.authSub,
+        timeMin,
+        timeMax,
+      });
+    }
 
     const oauth2Client = new google.auth.OAuth2({
       clientId: Resource.GoogleClientId.value,
@@ -202,6 +262,29 @@ export class UserService {
         );
       }
     }
+
+    // Cache the result for 24 hours (86400 seconds)
+    if (this.cacheService && cacheKey) {
+      const cacheSetSuccess = await this.cacheService.set(cacheKey, calendars, 86400);
+      
+      this.logger?.info("FreeBusy data cached", {
+        authSub: userProfile.authSub,
+        timeMin,
+        timeMax,
+        cacheKey,
+        calendarCount: Object.keys(calendars).length,
+        cacheSetSuccess,
+        ttlSeconds: 86400,
+      });
+    } else {
+      this.logger?.info("Cache service not available, skipping cache storage", {
+        authSub: userProfile.authSub,
+        timeMin,
+        timeMax,
+        calendarCount: Object.keys(calendars).length,
+      });
+    }
+
     return calendars;
   }
 }

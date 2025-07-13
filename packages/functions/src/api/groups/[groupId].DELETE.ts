@@ -1,7 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { UserService, GroupCalendarService } from "@busybees/core";
+import { UserService, GroupCalendarService, createCacheService } from "@busybees/core";
 import {
   APIGatewayProxyEventV2WithJWTAuthorizer,
   APIGatewayProxyResultV2,
@@ -13,9 +13,12 @@ const logger = new Logger({
   serviceName: "sst-app",
 });
 
+const cacheService = createCacheService(logger);
+
 const userService = new UserService({
   logger,
   dbClient,
+  cacheService,
 });
 
 const groupService = new GroupCalendarService({
