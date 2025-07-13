@@ -130,7 +130,6 @@ export default function BurgerMenu({
                     if (activeGroupId === pendingRemove.name) {
                       navigate("/my-calendar");
                     }
-                    // Note: userProfile will be refetched automatically by useUserProfile
                   } catch (e) {
                     console.error("Failed to leave group:", e);
                   }

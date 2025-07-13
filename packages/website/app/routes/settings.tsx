@@ -98,7 +98,7 @@ function ProfileSettings() {
     setIsAddingGoogle(true);
     try {
       await handleAddGoogleCalendar();
-      window.location.reload(); 
+      window.location.reload();
     } catch (e) {
       console.error(e);
       setIsAddingGoogle(false);
@@ -184,7 +184,7 @@ function ProfileSettings() {
               + Add Google Calendar
             </button> */}
             <button
-              onClick= {async () => {
+              onClick={async () => {
                 await handleAddGoogleCalendar();
                 await handleGoogleLoading();
               }}

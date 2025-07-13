@@ -179,3 +179,7 @@ Those endpoints don't serve a purpose in the app, they are only there to test if
 
 - `/calendar` - Calendar integration page with "Add Google Calendar" button
 - Uses React Router v7 loader function for server-side data fetching
+
+## App Demo
+
+See the [app demo video](app-demo.mp4) for a visual overview of the Busy Bees calendar coordination features.

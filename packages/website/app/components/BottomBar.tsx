@@ -64,7 +64,6 @@ export default function BottomBar({ onCreateGroup }: BottomBarProps) {
       setShowCreateGroup(false);
       setNewGroupName("");
       navigate(`/calendar/${newGroup.groupId}`);
-      // Note: userProfile will be refetched automatically by useUserProfile
     } catch (err) {
       console.error("Error creating group:", err);
       alert("There was an error creating a group calendar.");
