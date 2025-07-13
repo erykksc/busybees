@@ -5,17 +5,18 @@ import {
 } from "aws-lambda";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  CalendarEventDto,
-  getFreeBusyUser,
-  getUserProfile,
-} from "@busybees/core";
+import { CalendarEventDto, UserService } from "@busybees/core";
 import { v4 as uuidv4 } from "uuid";
 
 const dbClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 const logger = new Logger({
   serviceName: "sst-app",
+});
+
+const userService = new UserService({
+  logger,
+  dbClient,
 });
 
 // TODO: this function is mostly a copy of /api/user/freebusy route,
@@ -54,8 +55,8 @@ export const main = async (
       };
     }
 
-    const userProfile = await getUserProfile(dbClient, {
-      authSub: authSub,
+    const userProfile = await userService.getUserProfile({
+      authSub,
     });
     logger.info("User profile retrieved", { userProfile });
 
@@ -69,11 +70,10 @@ export const main = async (
       };
     }
 
-    const calendars = await getFreeBusyUser({
+    const calendars = await userService.getFreeBusyFromAllCalendars({
       userProfile,
       timeMin,
       timeMax,
-      logger,
     });
     logger.info("All calendars busy times fetched", {
       calendars: calendars,

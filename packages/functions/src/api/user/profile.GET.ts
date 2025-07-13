@@ -1,16 +1,21 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { getUserProfile } from "@busybees/core";
+import { UserService } from "@busybees/core";
 import {
   APIGatewayProxyEventV2WithJWTAuthorizer,
   APIGatewayProxyResultV2,
 } from "aws-lambda";
 
-const client = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const dbClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 const logger = new Logger({
   serviceName: "sst-app",
+});
+
+const userService = new UserService({
+  dbClient,
+  logger,
 });
 
 export const main = async (
@@ -22,7 +27,7 @@ export const main = async (
       throw new Error("authSub is not a valid string");
     }
 
-    const userProfile = await getUserProfile(client, {
+    const userProfile = await userService.getUserProfile({
       authSub,
     });
     logger.info("User profile retrieved", { userProfile });

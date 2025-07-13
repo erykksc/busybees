@@ -3,20 +3,30 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import {
   FreeBusyCalendars,
-  getFreeBusyUser,
-  getGroupCalendar,
-  getUserProfile,
   UserProfile,
+  UserService,
+  GroupCalendarService,
 } from "@busybees/core";
 import {
   APIGatewayProxyEventV2WithJWTAuthorizer,
   APIGatewayProxyResultV2,
 } from "aws-lambda";
 
-const client = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const dbClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 const logger = new Logger({
   serviceName: "sst-app",
+});
+
+const userService = new UserService({
+  logger,
+  dbClient,
+});
+
+const groupService = new GroupCalendarService({
+  logger,
+  dbClient,
+  userService,
 });
 
 export const main = async (
@@ -56,7 +66,7 @@ export const main = async (
       };
     }
 
-    const groupCalendar = await getGroupCalendar(client, {
+    const groupCalendar = await groupService.getGroupCalendar({
       groupId,
     });
 
@@ -76,7 +86,7 @@ export const main = async (
 
     let promises: Promise<UserProfile | null>[] = [];
     groupCalendar.members.forEach((member) => {
-      promises.push(getUserProfile(client, { authSub: member }));
+      promises.push(userService.getUserProfile({ authSub: member }));
     });
 
     let userProfiles: (UserProfile | null)[] = [];
@@ -96,8 +106,7 @@ export const main = async (
         return;
       }
       calPromises.push(
-        getFreeBusyUser({
-          logger,
+        userService.getFreeBusyFromAllCalendars({
           userProfile,
           timeMin,
           timeMax,

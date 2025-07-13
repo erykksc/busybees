@@ -90,6 +90,24 @@ apiGateway.route(
 );
 
 apiGateway.route(
+  "GET /api/groups/join/{inviteCode}",
+  "packages/functions/src/api/groups/[inviteCode].GET.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+
+apiGateway.route(
+  "POST /api/groups/{groupId}/remove-member",
+  "packages/functions/src/api/groups/[groupId]/remove-member.POST.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+
+apiGateway.route(
+  "DELETE /api/groups/{groupId}",
+  "packages/functions/src/api/groups/[groupId].DELETE.main",
+  { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
+);
+
+apiGateway.route(
   "GET /api/groups/{groupId}",
   "packages/functions/src/api/groups/[groupId].GET.main",
   { auth: { jwt: { authorizer: apiGatewayAuthorizer.id } } },
