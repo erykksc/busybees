@@ -1,24 +1,74 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "react-oidc-context";
+import { authGuard } from "~/components";
 
-interface ProfileSettingsProps {
-  addedCalendars: string[];
-  onRemoveCalendar: (calendar: string) => void;
-  onAddCalendar: (type: "Google" | "Microsoft" | "Apple") => void;
-  onClose: () => void;
+interface CalendarConnection {
+  type: "Google" | "Microsoft" | "Apple";
+  email: string;
+  id: string;
 }
 
-export default function ProfileSettings({
-  addedCalendars,
-  onRemoveCalendar,
-  onAddCalendar,
-  onClose,
-}: ProfileSettingsProps) {
-  const [pendingRemove, setPendingRemove] = useState<string | null>(null);
+function ProfileSettings() {
+  const [pendingRemove, setPendingRemove] = useState<CalendarConnection | null>(
+    null,
+  );
+  const [calendarConnections, setCalendarConnections] = useState<
+    CalendarConnection[]
+  >([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const auth = useAuth();
   const [isAddingGoogle, setIsAddingGoogle] = useState(false);
+
+  // Fetch user profile and calendar connections
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!auth.user) return;
+
+      try {
+        const response = await fetch("/api/user/profile", {
+          headers: {
+            Authorization: `Bearer ${auth.user.access_token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const userProfile = data.userProfile;
+
+          // Convert googleAccountNames to CalendarConnection objects
+          const connections: CalendarConnection[] = [];
+
+          if (userProfile.googleAccountNames) {
+            userProfile.googleAccountNames.forEach((email: string) => {
+              connections.push({
+                type: "Google",
+                email: email,
+                id: `google-${email}`,
+              });
+            });
+          }
+
+          setCalendarConnections(connections);
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [auth.user]);
+
+  const handleRemoveCalendar = async (connection: CalendarConnection) => {
+    console.log("Removing calendar:", connection);
+
+    setCalendarConnections((prev) =>
+      prev.filter((conn) => conn.id !== connection.id),
+    );
+  };
 
   const handleAddGoogleCalendar = async () => {
     try {
@@ -48,8 +98,7 @@ export default function ProfileSettings({
     setIsAddingGoogle(true);
     try {
       await handleAddGoogleCalendar();
-      onAddCalendar("Google");
-      onClose();
+      window.location.reload(); 
     } catch (e) {
       console.error(e);
       setIsAddingGoogle(false);
@@ -74,20 +123,42 @@ export default function ProfileSettings({
           <h3 className="text-lg font-semibold mb-2">
             Calendars added to Busy Bees
           </h3>
-          {!addedCalendars || addedCalendars.length === 0 ? (
+          {loading ? (
+            <p className="text-sm text-gray-500 italic">Loading calendars...</p>
+          ) : calendarConnections.length === 0 ? (
             <p className="text-sm text-gray-500 italic">
-              You haven’t added any calendars yet.
+              You haven't added any calendars yet.
             </p>
           ) : (
             <ul className="space-y-2">
-              {addedCalendars.map((calendar, index) => (
+              {calendarConnections.map((connection) => (
                 <li
-                  key={index}
+                  key={connection.id}
                   className="flex justify-between items-center px-3 py-2 bg-yellow-100 rounded shadow-sm"
                 >
-                  <span>{calendar}</span>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1">
+                      {connection.type === "Google" && (
+                        <span className="text-blue-600 text-sm font-semibold">
+                          Google
+                        </span>
+                      )}
+                      {connection.type === "Microsoft" && (
+                        <span className="text-blue-800 text-sm font-semibold">
+                          Microsoft
+                        </span>
+                      )}
+                      {connection.type === "Apple" && (
+                        <span className="text-gray-700 text-sm font-semibold">
+                          Apple
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-gray-600">•</span>
+                    <span className="text-sm">{connection.email}</span>
+                  </div>
                   <button
-                    onClick={() => setPendingRemove(calendar)}
+                    onClick={() => setPendingRemove(connection)}
                     className="text-red-500 hover:text-red-700 text-sm"
                     title="Remove"
                   >
@@ -113,7 +184,10 @@ export default function ProfileSettings({
               + Add Google Calendar
             </button> */}
             <button
-              onClick={handleGoogleLoading}
+              onClick= {async () => {
+                await handleAddGoogleCalendar();
+                await handleGoogleLoading();
+              }}
               disabled={isAddingGoogle}
               className={`
           flex items-center justify-center
@@ -152,26 +226,29 @@ export default function ProfileSettings({
               )}
             </button>
             <button
-              onClick={() => onAddCalendar("Microsoft")}
-              className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full shadow hover:bg-blue-200 transition-all"
+              disabled
+              className="bg-gray-100 text-gray-500 px-4 py-2 rounded-full shadow cursor-not-allowed"
+              title="Coming soon"
             >
-              + Add Microsoft Calendar
+              + Add Microsoft Calendar (Coming Soon)
             </button>
             <button
-              onClick={() => onAddCalendar("Apple")}
-              className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full shadow hover:bg-blue-200 transition-all"
+              disabled
+              className="bg-gray-100 text-gray-500 px-4 py-2 rounded-full shadow cursor-not-allowed"
+              title="Coming soon"
             >
-              + Add Apple Calendar
+              + Add Apple Calendar (Coming Soon)
             </button>
           </div>
         </div>
 
         {/* Confirm Remove Modal */}
         {pendingRemove && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded shadow-md w-full max-w-sm font-cute">
               <h3 className="font-bold text-lg mb-4 text-center">
-                Remove {pendingRemove} from Busy Bees?
+                Remove {pendingRemove.type} calendar ({pendingRemove.email})
+                from Busy Bees?
               </h3>
               <div className="flex justify-end gap-3">
                 <button
@@ -182,7 +259,7 @@ export default function ProfileSettings({
                 </button>
                 <button
                   onClick={() => {
-                    onRemoveCalendar(pendingRemove);
+                    handleRemoveCalendar(pendingRemove);
                     setPendingRemove(null);
                   }}
                   className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600"
@@ -197,3 +274,5 @@ export default function ProfileSettings({
     </div>
   );
 }
+
+export default authGuard(ProfileSettings);

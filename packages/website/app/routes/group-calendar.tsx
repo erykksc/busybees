@@ -151,12 +151,13 @@ function GroupCalendar() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showFreeSpots, setShowFreeSpots] = useState(false);
   const [saveForGroup, setSaveForGroup] = useState(true);
+  const [loadingEvents, setLoadingEvents] = useState(false);
 
-  // 2️⃣ load events for this month
   useEffect(() => {
     if (!auth.user || !group?.groupId || groupLoading) return;
     const t0 = viewDate.startOf("month").toISOString();
     const t1 = viewDate.endOf("month").toISOString();
+    setLoadingEvents(true);
     fetch(
       `/api/groups/${encodeURIComponent(group.groupId)}/events?timeMin=${t0}&timeMax=${t1}`,
       { headers: { Authorization: `Bearer ${auth.user.access_token}` } },
@@ -166,7 +167,6 @@ function GroupCalendar() {
         const groupEvents = jsonData.events as CalendarEventDto[];
         let all = [...groupEvents];
         if (makeEventsPublic) {
-          // also pull each member's events
           Promise.all(
             group.members.map((memId) =>
               fetch(`/api/user/${memId}/events?timeMin=${t0}&timeMax=${t1}`, {
@@ -183,6 +183,7 @@ function GroupCalendar() {
         } else {
           setEvents(all);
         }
+        setLoadingEvents(false);
       })
       .catch(console.error);
   }, [viewDate, group, makeEventsPublic, auth.user]);
@@ -287,7 +288,7 @@ function GroupCalendar() {
         {showInviteModal && (
           <InviteModal
             group={group}
-            members={group.members}
+            members={group.members || []}
             onRemove={async (userId: string) => {
               try {
                 await removeUserFromGroup(group.groupId, userId);
@@ -339,105 +340,131 @@ function GroupCalendar() {
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-          <div key={day} className="text-center font-semibold">
-            {day}
-          </div>
-        ))}
+      {loadingEvents ? (
+        <div className="flex justify-center items-center h-64">
+          <svg
+            className="animate-spin h-8 w-8 text-blue-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            />
+          </svg>
+          <span className="ml-2 text-blue-600">Loading events…</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+            <div key={day} className="text-center font-semibold">
+              {day}
+            </div>
+          ))}
 
-        {days.map((d, i) => {
-          if (!d)
+          {days.map((d, i) => {
+            if (!d)
+              return (
+                <div
+                  key={i}
+                  className="bg-gray-50 rounded-2xl min-h-[100px]"
+                ></div>
+              );
+
+            const date = viewDate.date(d);
+            const fullDate = dayjs(
+              `${viewDate.year()}-${viewDate.month() + 1}-${d}`,
+            );
+            const inRange =
+              fullDate.isSameOrAfter(today, "day") &&
+              fullDate.isSameOrBefore(eightMonthsAhead, "day");
+            const dayEvents = eventsOnDay(d);
+            const freeSlots =
+              showFreeSpots && inRange
+                ? findFreeSlots(
+                    dayEvents,
+                    date.format("YYYY-MM-DD"),
+                    dayStart,
+                    dayEnd,
+                  )
+                : [];
+
+            const isFullyFree =
+              showFreeSpots && inRange && dayEvents.length === 0;
+
             return (
               <div
                 key={i}
-                className="bg-gray-50 rounded-2xl min-h-[100px]"
-              ></div>
-            );
-
-          const date = viewDate.date(d);
-          const fullDate = dayjs(
-            `${viewDate.year()}-${viewDate.month() + 1}-${d}`,
-          );
-          const inRange =
-            fullDate.isSameOrAfter(today, "day") &&
-            fullDate.isSameOrBefore(eightMonthsAhead, "day");
-          const dayEvents = eventsOnDay(d);
-          const freeSlots =
-            showFreeSpots && inRange
-              ? findFreeSlots(
-                  dayEvents,
-                  date.format("YYYY-MM-DD"),
-                  dayStart,
-                  dayEnd,
-                )
-              : [];
-
-          const isFullyFree =
-            showFreeSpots && inRange && dayEvents.length === 0;
-
-          return (
-            <div
-              key={i}
-              onClick={() =>
-                handleFreeSlotSelect(
-                  {
-                    start: fullDate.startOf("day"),
-                    end: fullDate.endOf("day"),
-                  },
-                  fullDate,
-                )
-              }
-              className="w-full text-left"
-            >
-              <div
-                className={`rounded-2xl min-h-[100px] p-2 border border-gray-200  cursor-pointer ${
-                  isFullyFree ? "bg-green-100" : "bg-white"
-                }`}
+                onClick={() =>
+                  handleFreeSlotSelect(
+                    {
+                      start: fullDate.startOf("day"),
+                      end: fullDate.endOf("day"),
+                    },
+                    fullDate,
+                  )
+                }
+                className="w-full text-left"
               >
-                <div className="text-xs font-bold">{d}</div>
-                {dayEvents.map((ev) => {
-                  const isPrivate = false;
-                  const title = ev.allDay
-                    ? `${ev.userId} (All Day)`
-                    : isPrivate
-                      ? `${ev.userId}'s Event`
-                      : ev.title;
-                  return (
-                    <div
-                      key={ev.id}
-                      className="rounded-md px-1 py-0.5 mt-1 text-xs text-white"
-                      style={{
-                        backgroundColor: getUserColor(ev.userId),
-                      }}
-                    >
-                      {title}
-                    </div>
-                  );
-                })}
+                <div
+                  className={`rounded-2xl min-h-[100px] p-2 border border-gray-200  cursor-pointer ${
+                    isFullyFree ? "bg-green-100" : "bg-white"
+                  }`}
+                >
+                  <div className="text-xs font-bold">{d}</div>
+                  {dayEvents.map((ev) => {
+                    const isPrivate = false;
+                    const title = ev.allDay
+                      ? `${ev.userId} (All Day)`
+                      : isPrivate
+                        ? `${ev.userId}'s Event`
+                        : ev.title;
+                    return (
+                      <div
+                        key={ev.id}
+                        className="rounded-md px-1 py-0.5 mt-1 text-xs text-white"
+                        style={{
+                          backgroundColor: getUserColor(ev.userId),
+                        }}
+                      >
+                        {title}
+                      </div>
+                    );
+                  })}
 
-                {/* Show free slots */}
-                {showFreeSpots &&
-                  inRange &&
-                  !isFullyFree &&
-                  freeSlots.map((slot, idx) => (
-                    <button
-                      key={idx}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFreeSlotSelect(slot, fullDate);
-                      }}
-                      className="bg-green-300 rounded-md px-1 py-0.5 mt-1 text-xs text-white"
-                    >
-                      Free: {slot.start.format("HH:mm")} –{" "}
-                      {slot.end.format("HH:mm")}
-                    </button>
-                  ))}
+                  {/* Show free slots */}
+                  {showFreeSpots &&
+                    inRange &&
+                    !isFullyFree &&
+                    freeSlots.map((slot, idx) => (
+                      <button
+                        key={idx}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFreeSlotSelect(slot, fullDate);
+                        }}
+                        className="bg-green-300 rounded-md px-1 py-0.5 mt-1 text-xs text-white"
+                      >
+                        Free: {slot.start.format("HH:mm")} –{" "}
+                        {slot.end.format("HH:mm")}
+                      </button>
+                    ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg">

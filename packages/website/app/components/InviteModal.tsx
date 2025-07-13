@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useAuth } from "react-oidc-context";
-import type { Group, User } from "~/types";
+import type { GroupCalendarDto } from "@busybees/core";
 
 interface InviteModalProps {
-  group: Group;
-  members: User[];
+  group: any; // Using any for now since the actual structure doesn't match GroupCalendarDto
+  members: any; // Can be array, Set, or object
   onRemove: (userId: string) => Promise<void>;
   onClose: () => void;
 }
@@ -17,8 +16,16 @@ export default function InviteModal({
 }: InviteModalProps) {
   const [pendingRemove, setPendingRemove] = useState<string | null>(null);
 
-  const inviteLink = `${window.location.origin}/invite/${group.id}`;
+  const inviteLink =
+    group.inviteUrl || `${window.location.origin}/invite/${group.inviteCode}`;
 
+    const membersList = Array.isArray(members)
+    ? members
+    : members instanceof Set
+      ? Array.from(members)
+      : typeof members === "object" && members !== null
+        ? Object.values(members).filter(Boolean)
+        : [];
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(inviteLink);
@@ -30,25 +37,31 @@ export default function InviteModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-lg font-bold mb-4">Group Members</h2>
 
         <ul className="mb-4">
-          {members.map((member) => (
-            <li
-              key={member.id}
-              className="flex justify-between items-center mb-2"
-            >
-              <span>{member.email}</span>
-              <button
-                onClick={() => setPendingRemove(member.id)}
-                className="text-red-500 hover:underline"
+        {membersList.length > 0 ? (
+            membersList.map((member) => (
+              <li
+                key={member}
+                className="flex justify-between items-center mb-2"
               >
-                🗑 Remove
-              </button>
+                <span>{member}</span>
+                <button
+                  onClick={() => setPendingRemove(member)}
+                  className="text-red-500 hover:underline"
+                >
+                  🗑 Remove
+                </button>
+              </li>
+            ))
+          ) : (
+            <li className="text-gray-500 text-sm">
+              No members yet. Share the invite link below to add members!
             </li>
-          ))}
+          )}
         </ul>
 
         {/* Copy Invite Link */}

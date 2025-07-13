@@ -50,9 +50,11 @@ export class GroupCalendarService {
     return result.Item as GroupCalendar;
   }
 
+  // returns null when the group calendar does not exist
   async getGroupCalendarByInviteCode(
     inviteCode: string,
-  ): Promise<GroupCalendar> {
+  ): Promise<GroupCalendar | null> {
+    this.logger?.info("getGroupCalendarByInviteCode", { inviteCode });
     const result = await this.dbClient.send(
       new QueryCommand({
         TableName: Resource.GroupCalendarsTable.name,
@@ -65,7 +67,7 @@ export class GroupCalendarService {
     );
 
     if (!result.Items || result.Items.length === 0) {
-      throw new Error("Group calendar not found");
+      return null;
     }
 
     return result.Items[0] as GroupCalendar;
