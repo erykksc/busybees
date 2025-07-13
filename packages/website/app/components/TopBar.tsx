@@ -20,7 +20,6 @@ export default function TopBar({ onOpenBurger }: TopBarProps) {
     "Google" | "Microsoft" | "Apple" | null
   >(null);
 
-  // Determine title based on current route
   const isPersonalCalendar = location.pathname === "/my-calendar";
   const title = isPersonalCalendar
     ? "My Calendar"

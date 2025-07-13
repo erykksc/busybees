@@ -2,8 +2,8 @@ import { useState } from "react";
 import type { GroupCalendarDto } from "@busybees/core";
 
 interface InviteModalProps {
-  group: any; // Using any for now since the actual structure doesn't match GroupCalendarDto
-  members: any; // Can be array, Set, or object
+  group: any;
+  members: any;
   onRemove: (userId: string) => Promise<void>;
   onClose: () => void;
 }
@@ -19,7 +19,7 @@ export default function InviteModal({
   const inviteLink =
     group.inviteUrl || `${window.location.origin}/invite/${group.inviteCode}`;
 
-    const membersList = Array.isArray(members)
+  const membersList = Array.isArray(members)
     ? members
     : members instanceof Set
       ? Array.from(members)
@@ -42,7 +42,7 @@ export default function InviteModal({
         <h2 className="text-lg font-bold mb-4">Group Members</h2>
 
         <ul className="mb-4">
-        {membersList.length > 0 ? (
+          {membersList.length > 0 ? (
             membersList.map((member) => (
               <li
                 key={member}

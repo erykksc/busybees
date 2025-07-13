@@ -116,13 +116,11 @@ const getUserColor = (authSub: string): string => {
     "#d9f99d",
   ];
 
-  // Create a simple hash from the authSub
   let hash = 0;
   for (let i = 0; i < authSub.length; i++) {
     hash = ((hash << 5) - hash + authSub.charCodeAt(i)) & 0xffffffff;
   }
 
-  // Use the hash to pick a color consistently
   return colors[Math.abs(hash) % colors.length];
 };
 
@@ -188,7 +186,6 @@ function GroupCalendar() {
       .catch(console.error);
   }, [viewDate, group, makeEventsPublic, auth.user]);
 
-  // Loading and error states
   if (groupLoading) {
     return <div className="p-4 text-center">Loading group...</div>;
   }
@@ -422,25 +419,26 @@ function GroupCalendar() {
                   }`}
                 >
                   <div className="text-xs font-bold">{d}</div>
-                  {!showFreeSpots && dayEvents.map((ev) => {
-                    const isPrivate = false;
-                    const title = ev.allDay
-                      ? `${ev.userId} (All Day)`
-                      : isPrivate
-                        ? `${ev.userId}'s Event`
-                        : ev.title;
-                    return (
-                      <div
-                        key={ev.id}
-                        className="rounded-md px-1 py-0.5 mt-1 text-xs text-white"
-                        style={{
-                          backgroundColor: getUserColor(ev.userId),
-                        }}
-                      >
-                        {title}
-                      </div>
-                    );
-                  })}
+                  {!showFreeSpots &&
+                    dayEvents.map((ev) => {
+                      const isPrivate = false;
+                      const title = ev.allDay
+                        ? `${ev.userId} (All Day)`
+                        : isPrivate
+                          ? `${ev.userId}'s Event`
+                          : ev.title;
+                      return (
+                        <div
+                          key={ev.id}
+                          className="rounded-md px-1 py-0.5 mt-1 text-xs text-white"
+                          style={{
+                            backgroundColor: getUserColor(ev.userId),
+                          }}
+                        >
+                          {title}
+                        </div>
+                      );
+                    })}
 
                   {/* Show free slots */}
                   {showFreeSpots &&
