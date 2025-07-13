@@ -422,7 +422,7 @@ function GroupCalendar() {
                   }`}
                 >
                   <div className="text-xs font-bold">{d}</div>
-                  {dayEvents.map((ev) => {
+                  {!showFreeSpots && dayEvents.map((ev) => {
                     const isPrivate = false;
                     const title = ev.allDay
                       ? `${ev.userId} (All Day)`
