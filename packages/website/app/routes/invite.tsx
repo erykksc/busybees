@@ -39,7 +39,7 @@ function Invite() {
       try {
         console.log("Attempting to join group with invite code:", inviteCode);
 
-        const joinRes = await fetch(`/api/groups/${inviteCode}`, {
+        const joinRes = await fetch(`/api/groups/join/${inviteCode}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${auth.user.access_token}`,

@@ -44,9 +44,21 @@ export const main = async (
       };
     }
 
+    logger.info("Received request to join group", { inviteCode, userAuthSub });
+
     // Find the group by invite code
     const groupCalendar =
       await groupService.getGroupCalendarByInviteCode(inviteCode);
+
+    if (groupCalendar === null) {
+      return {
+        statusCode: 404,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ error: "Group calendar not found" }),
+      };
+    }
 
     // Check if user is already a member
     if (groupCalendar.members.has(userAuthSub)) {
